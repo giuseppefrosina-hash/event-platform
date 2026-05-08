@@ -1,0 +1,13 @@
+### Creazione del primo utente
+### Creazione del primo utente
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "email": "giuseppe.frosina@test.com",
+  "name": "Giuseppe Frosina",
+  "password": "super-secret-password-123" // <-- CAMBIATO ANCHE QUI
+}
+
+### Verifica utenti creati
+GET http://localhost:3000/users
