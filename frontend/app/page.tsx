@@ -65,7 +65,7 @@ export default function Home() {
         return;
       }
 
-      setMessage("Registration successful. Please login.");
+      setMessage("Registration successful");
       setIsLogin(true);
     } catch (error) {
       setMessage("Server error");
@@ -100,9 +100,9 @@ export default function Home() {
       localStorage.setItem("token", data.access_token);
       setToken(data.access_token);
 
-      setMessage("Login successful");
-
       fetchEvents(data.access_token);
+
+      setMessage("Login successful");
     } catch (error) {
       setMessage("Server error");
     } finally {
@@ -156,14 +156,14 @@ export default function Home() {
         return;
       }
 
-      setMessage("Event created successfully");
-
       setTitle("");
       setDescription("");
       setLocation("");
       setDate("");
 
       fetchEvents();
+
+      setMessage("Event created");
     } catch (error) {
       setMessage("Server error");
     } finally {
@@ -173,21 +173,16 @@ export default function Home() {
 
   async function deleteEvent(id: number) {
     try {
-      const response = await fetch(`${API_URL}/events/${id}`, {
+      await fetch(`${API_URL}/events/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!response.ok) {
-        setMessage("Cannot delete event");
-        return;
-      }
-
       fetchEvents();
     } catch (error) {
-      setMessage("Server error");
+      setMessage("Delete failed");
     }
   }
 
@@ -202,19 +197,17 @@ export default function Home() {
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-12 flex items-center justify-between">
           <div>
-            <h1 className="text-5xl font-bold tracking-tight">
-              Event Platform
-            </h1>
+            <h1 className="text-5xl font-bold">Event Platform</h1>
 
             <p className="mt-3 text-gray-400">
-              Modern full-stack event management platform.
+              Modern full-stack event platform.
             </p>
           </div>
 
           {token && (
             <button
               onClick={logout}
-              className="rounded-2xl border border-red-500 px-5 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-500 hover:text-white"
+              className="rounded-2xl border border-red-500 px-5 py-3 text-red-400 hover:bg-red-500 hover:text-white"
             >
               Logout
             </button>
@@ -223,11 +216,11 @@ export default function Home() {
 
         {!token ? (
           <div className="grid gap-10 lg:grid-cols-2">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
               <div className="mb-6 flex gap-4">
                 <button
                   onClick={() => setIsLogin(true)}
-                  className={`rounded-xl px-5 py-3 font-semibold transition ${
+                  className={`rounded-xl px-5 py-3 font-semibold ${
                     isLogin
                       ? "bg-white text-black"
                       : "bg-white/10 text-white"
@@ -238,7 +231,7 @@ export default function Home() {
 
                 <button
                   onClick={() => setIsLogin(false)}
-                  className={`rounded-xl px-5 py-3 font-semibold transition ${
+                  className={`rounded-xl px-5 py-3 font-semibold ${
                     !isLogin
                       ? "bg-white text-black"
                       : "bg-white/10 text-white"
@@ -254,7 +247,7 @@ export default function Home() {
                   placeholder="Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mb-4 w-full rounded-2xl border border-white/10 bg-black/40 p-4 outline-none"
+                  className="mb-4 w-full rounded-2xl border border-white/10 bg-black/40 p-4"
                 />
               )}
 
@@ -263,7 +256,7 @@ export default function Home() {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mb-4 w-full rounded-2xl border border-white/10 bg-black/40 p-4 outline-none"
+                className="mb-4 w-full rounded-2xl border border-white/10 bg-black/40 p-4"
               />
 
               <input
@@ -271,13 +264,13 @@ export default function Home() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mb-6 w-full rounded-2xl border border-white/10 bg-black/40 p-4 outline-none"
+                className="mb-6 w-full rounded-2xl border border-white/10 bg-black/40 p-4"
               />
 
               <button
                 onClick={isLogin ? login : register}
                 disabled={loading}
-                className="w-full rounded-2xl bg-white py-4 font-bold text-black transition hover:opacity-80"
+                className="w-full rounded-2xl bg-white py-4 font-bold text-black"
               >
                 {loading
                   ? "Loading..."
@@ -291,27 +284,26 @@ export default function Home() {
               )}
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-purple-500/20 to-cyan-500/20 p-8">
+            <div className="rounded-3xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 p-8">
               <h2 className="text-3xl font-bold">
-                Create and manage events online.
+                Create and manage events online
               </h2>
 
-              <p className="mt-4 text-lg text-gray-300">
-                Full-stack application built with Next.js, NestJS, Prisma,
-                PostgreSQL and JWT authentication.
+              <p className="mt-4 text-gray-300">
+                Full-stack app with Next.js, NestJS, Prisma and PostgreSQL.
               </p>
 
-              <div className="mt-10 grid gap-4">
+              <div className="mt-10 space-y-4">
                 <div className="rounded-2xl bg-black/30 p-5">
-                  🔐 Secure JWT Authentication
+                  🔐 JWT Authentication
                 </div>
 
                 <div className="rounded-2xl bg-black/30 p-5">
-                  📅 Event Management System
+                  📅 Event Management
                 </div>
 
                 <div className="rounded-2xl bg-black/30 p-5">
-                  ☁️ Cloud Deployment with Vercel & Render
+                  ☁️ Vercel + Render Deploy
                 </div>
               </div>
             </div>
@@ -326,14 +318,14 @@ export default function Home() {
                 placeholder="Title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="mb-4 w-full rounded-2xl border border-white/10 bg-black/40 p-4 outline-none"
+                className="mb-4 w-full rounded-2xl border border-white/10 bg-black/40 p-4"
               />
 
               <textarea
                 placeholder="Description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="mb-4 h-32 w-full rounded-2xl border border-white/10 bg-black/40 p-4 outline-none"
+                className="mb-4 h-32 w-full rounded-2xl border border-white/10 bg-black/40 p-4"
               />
 
               <input
@@ -341,26 +333,22 @@ export default function Home() {
                 placeholder="Location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="mb-4 w-full rounded-2xl border border-white/10 bg-black/40 p-4 outline-none"
+                className="mb-4 w-full rounded-2xl border border-white/10 bg-black/40 p-4"
               />
 
               <input
                 type="datetime-local"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="mb-6 w-full rounded-2xl border border-white/10 bg-black/40 p-4 outline-none"
+                className="mb-6 w-full rounded-2xl border border-white/10 bg-black/40 p-4"
               />
 
               <button
                 onClick={createEvent}
-                className="w-full rounded-2xl bg-white py-4 font-bold text-black transition hover:opacity-80"
+                className="w-full rounded-2xl bg-white py-4 font-bold text-black"
               >
                 Create Event
               </button>
-
-              {message && (
-                <p className="mt-5 text-sm text-gray-300">{message}</p>
-              )}
             </div>
 
             <div className="lg:col-span-2">
@@ -369,7 +357,7 @@ export default function Home() {
 
                 <button
                   onClick={() => fetchEvents()}
-                  className="rounded-2xl border border-white/10 px-5 py-3 transition hover:bg-white hover:text-black"
+                  className="rounded-2xl border border-white/10 px-5 py-3"
                 >
                   Refresh
                 </button>
@@ -378,13 +366,13 @@ export default function Home() {
               <div className="grid gap-6">
                 {events.length === 0 ? (
                   <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-gray-400">
-                    No events found.
+                    No events found
                   </div>
                 ) : (
                   events.map((event) => (
                     <div
                       key={event.id}
-                      className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur"
+                      className="rounded-3xl border border-white/10 bg-white/5 p-8"
                     >
                       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                         <div>
@@ -409,7 +397,7 @@ export default function Home() {
 
                         <button
                           onClick={() => deleteEvent(event.id)}
-                          className="rounded-2xl border border-red-500 px-5 py-3 text-red-400 transition hover:bg-red-500 hover:text-white"
+                          className="rounded-2xl border border-red-500 px-5 py-3 text-red-400 hover:bg-red-500 hover:text-white"
                         >
                           Delete
                         </button>
