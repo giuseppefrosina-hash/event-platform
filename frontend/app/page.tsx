@@ -1,5 +1,3 @@
-# frontend/app/page.tsx
-
 ```tsx
 "use client";
 
@@ -207,6 +205,7 @@ export default function Home() {
             <h1 className="text-5xl font-bold tracking-tight">
               Event Platform
             </h1>
+
             <p className="mt-3 text-gray-400">
               Modern full-stack event management platform.
             </p>
@@ -427,4 +426,3 @@ export default function Home() {
   );
 }
 ```
-
