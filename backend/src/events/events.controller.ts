@@ -1,18 +1,16 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
-  Param,
   Post,
-  Put,
-  Request,
+  Delete,
+  Param,
+  Body,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 
-import { AuthGuard } from '@nestjs/passport';
-
 import { EventsService } from './events.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('events')
 export class EventsController {
@@ -20,46 +18,41 @@ export class EventsController {
     private readonly eventsService: EventsService,
   ) {}
 
-  @UseGuards(AuthGuard('jwt'))
-  @Post()
-  create(
-    @Body() data: any,
-    @Request() req,
-  ) {
-    return this.eventsService.create(
-      data,
-      req.user.userId,
-    );
-  }
-
   @Get()
-  findAll() {
+  async findAll() {
     return this.eventsService.findAll();
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Put(':id')
-  update(
+  @Get(':id')
+  async findOne(
     @Param('id') id: string,
-    @Body() data: any,
-    @Request() req,
   ) {
-    return this.eventsService.update(
+    return this.eventsService.findOne(
       Number(id),
-      data,
-      req.user.userId,
     );
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  async create(
+    @Body() body: any,
+    @Req() req: any,
+  ) {
+    return this.eventsService.create(
+      body,
+      req.user.id,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  delete(
+  async delete(
     @Param('id') id: string,
-    @Request() req,
+    @Req() req: any,
   ) {
     return this.eventsService.delete(
       Number(id),
-      req.user.userId,
+      req.user.id,
     );
   }
 }
