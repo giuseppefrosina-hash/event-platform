@@ -368,12 +368,10 @@ export default function HomePage() {
                   </button>
 
                   <div className="bg-white p-3 rounded-2xl w-fit">
-                    <QRCode
-                      value={`http://localhost:3000/event/${event.id}`}
-                      size={100}
-                    />
-                  </div>
-                </div>
+                    <QRCodeCanvas
+  value={`https://event-platform-six-fawn.vercel.app/event/${event.id}`}
+  size={120}
+/>
               </div>
             ))}
           </div>
