@@ -1,51 +1,69 @@
-const jwt = require("jsonwebtoken");
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 
-module.exports = function (req, res, next) {
-  try {
-    const authHeader =
-      req.headers.authorization;
+import * as jwt from 'jsonwebtoken';
 
-    console.log(
-      "AUTH HEADER:",
-      authHeader
-    );
+@Injectable()
+export class JwtAuthGuard
+  implements CanActivate
+{
+  canActivate(
+    context: ExecutionContext,
+  ): boolean {
+    try {
+      const request =
+        context
+          .switchToHttp()
+          .getRequest();
 
-    if (!authHeader) {
-      return res
-        .status(401)
-        .json({
-          error: "Token mancante",
-        });
+      const authHeader =
+        request.headers.authorization;
+
+      console.log(
+        'AUTH HEADER:',
+        authHeader,
+      );
+
+      if (!authHeader) {
+        throw new UnauthorizedException(
+          'Token mancante',
+        );
+      }
+
+      const token =
+        authHeader.split(' ')[1];
+
+      console.log(
+        'TOKEN:',
+        token,
+      );
+
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET as string,
+      );
+
+      console.log(
+        'DECODED:',
+        decoded,
+      );
+
+      request.user = decoded;
+
+      return true;
+    } catch (err) {
+      console.log(
+        'JWT ERROR:',
+        err,
+      );
+
+      throw new UnauthorizedException(
+        'Token non valido',
+      );
     }
-
-    const token =
-      authHeader.split(" ")[1];
-
-    console.log("TOKEN:", token);
-
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
-
-    console.log(
-      "DECODED:",
-      decoded
-    );
-
-    req.user = decoded;
-
-    next();
-  } catch (err) {
-    console.log(
-      "JWT ERROR:",
-      err
-    );
-
-    return res
-      .status(401)
-      .json({
-        error: "Token non valido",
-      });
   }
-};
+}
