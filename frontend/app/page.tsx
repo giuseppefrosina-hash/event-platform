@@ -1,131 +1,87 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
-const API = "https://event-platform-vr94.onrender.com";
+const API_URL = 'https://event-platform-vr94.onrender.com';
 
-export default function Home() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] =
-    useState("");
+export default function HomePage() {
+  const [events, setEvents] = useState([]);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] =
-    useState("");
-  const [location, setLocation] =
-    useState("");
-  const [image, setImage] = useState("");
-  const [selectedDate, setSelectedDate] =
-    useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
 
-  const [events, setEvents] = useState<any[]>(
-    []
-  );
+  async function loadEvents() {
+    try {
+      const res = await axios.get(`${API_URL}/events`);
+      console.log('EVENTS:', res.data);
+      setEvents(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    loadEvents();
+  }, []);
 
   async function register() {
     try {
-      const response = await axios.post(
-        `${API}/auth/register`,
-        {
-          email,
-          password,
-        }
-      );
+      const res = await axios.post(`${API_URL}/auth/register`, {
+        email,
+        password,
+      });
 
-      console.log(
-        "REGISTER RESPONSE:",
-        response.data
-      );
-
-      toast.success("Registrazione ok");
+      console.log('REGISTER RESPONSE:', res.data);
+      alert('Utente registrato');
     } catch (err) {
-      console.log(
-        "REGISTER ERROR:",
-        err
-      );
-
-      toast.error("Errore registrazione");
+      console.error(err);
+      alert('Errore registrazione');
     }
   }
 
   async function login() {
     try {
-      const response = await axios.post(
-        `${API}/auth/login`,
-        {
-          email,
-          password,
-        }
-      );
+      const res = await axios.post(`${API_URL}/auth/login`, {
+        email,
+        password,
+      });
+
+      console.log('LOGIN RESPONSE:', res.data);
+
+      localStorage.setItem('token', res.data.access_token);
 
       console.log(
-        "LOGIN RESPONSE:",
-        response.data
+        'TOKEN SALVATO:',
+        localStorage.getItem('token')
       );
 
-      localStorage.setItem(
-        "token",
-        response.data.access_token
-      );
-
-      console.log(
-        "TOKEN SALVATO:",
-        localStorage.getItem("token")
-      );
-
-      toast.success("Login effettuato");
+      alert('Login effettuato');
     } catch (err) {
-      console.log(
-        "LOGIN ERROR:",
-        err
-      );
-
-      toast.error("Errore login");
-    }
-  }
-
-  async function fetchEvents() {
-    try {
-      const response = await axios.get(
-        `${API}/events`
-      );
-
-      setEvents(response.data);
-    } catch (err) {
-      console.log(
-        "FETCH EVENTS ERROR:",
-        err
-      );
+      console.error(err);
+      alert('Errore login');
     }
   }
 
   async function createEvent() {
     try {
-      const token =
-        localStorage.getItem("token");
+      const token = localStorage.getItem('token');
 
-      console.log(
-        "TOKEN USATO:",
-        token
-      );
+      console.log('TOKEN USATO:', token);
 
-      if (!token) {
-        toast.error(
-          "Devi fare login prima"
-        );
-        return;
-      }
-
-      const response = await axios.post(
-        `${API}/events`,
+      const res = await axios.post(
+        `${API_URL}/events`,
         {
           title,
           description,
           location,
-          image,
-          date: selectedDate,
+          image:
+            'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
+          price: 20,
+          date: new Date(),
         },
         {
           headers: {
@@ -134,184 +90,112 @@ export default function Home() {
         }
       );
 
-      console.log(
-        "CREATE EVENT RESPONSE:",
-        response.data
-      );
+      console.log('CREATE EVENT RESPONSE:', res.data);
 
-      toast.success("Evento creato");
+      alert('Evento creato!');
 
-      setTitle("");
-      setDescription("");
-      setLocation("");
-      setImage("");
-      setSelectedDate("");
-
-      fetchEvents();
+      loadEvents();
     } catch (err) {
-      console.log(
-        "CREATE EVENT ERROR:",
-        err
-      );
-
-      toast.error(
-        "Errore creazione evento"
-      );
+      console.error('CREATE EVENT ERROR:', err);
+      alert('Errore creazione evento');
     }
   }
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
   return (
-    <main className="min-h-screen bg-black text-white p-8">
-      <Toaster />
+    <main style={{ padding: 40 }}>
+      <h1>Event Platform</h1>
 
-      <h1 className="text-7xl font-bold">
-        Event Platform
-      </h1>
+      <hr />
 
-      <p className="text-3xl text-gray-400 mt-4 mb-10">
-        Premium Event SaaS Dashboard
-      </p>
+      <h2>Register / Login</h2>
 
-      <div className="bg-zinc-900 p-8 rounded-3xl mb-10">
-        <h2 className="text-5xl font-bold mb-8">
-          Login / Register
-        </h2>
+      <input
+        placeholder="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
 
-        <div className="flex flex-col gap-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) =>
-              setEmail(e.target.value)
-            }
-            className="bg-zinc-800 p-5 rounded-xl text-2xl"
+      <br />
+      <br />
+
+      <input
+        placeholder="password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      <br />
+      <br />
+
+      <button onClick={register}>Register</button>
+
+      <button onClick={login} style={{ marginLeft: 10 }}>
+        Login
+      </button>
+
+      <hr />
+
+      <h2>Create Event</h2>
+
+      <input
+        placeholder="title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+
+      <br />
+      <br />
+
+      <input
+        placeholder="description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+
+      <br />
+      <br />
+
+      <input
+        placeholder="location"
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+      />
+
+      <br />
+      <br />
+
+      <button onClick={createEvent}>
+        Create Event
+      </button>
+
+      <hr />
+
+      <h2>All Events</h2>
+
+      {events.map((event: any) => (
+        <div
+          key={event.id}
+          style={{
+            border: '1px solid #ccc',
+            padding: 20,
+            marginBottom: 20,
+          }}
+        >
+          <img
+            src={event.image}
+            width="300"
           />
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) =>
-              setPassword(e.target.value)
-            }
-            className="bg-zinc-800 p-5 rounded-xl text-2xl"
-          />
+          <h3>{event.title}</h3>
 
-          <button
-            onClick={register}
-            className="bg-blue-600 p-5 rounded-xl text-2xl font-bold"
-          >
-            Registrati
-          </button>
+          <p>{event.description}</p>
 
-          <button
-            onClick={login}
-            className="bg-green-500 p-5 rounded-xl text-2xl font-bold"
-          >
-            Login
-          </button>
+          <p>{event.location}</p>
+
+          <p>€ {event.price}</p>
         </div>
-      </div>
-
-      <div className="bg-zinc-900 p-8 rounded-3xl mb-10">
-        <h2 className="text-5xl font-bold mb-8">
-          Crea Evento
-        </h2>
-
-        <div className="flex flex-col gap-4">
-          <input
-            placeholder="Titolo"
-            value={title}
-            onChange={(e) =>
-              setTitle(e.target.value)
-            }
-            className="bg-zinc-800 p-5 rounded-xl text-2xl"
-          />
-
-          <input
-            placeholder="Descrizione"
-            value={description}
-            onChange={(e) =>
-              setDescription(e.target.value)
-            }
-            className="bg-zinc-800 p-5 rounded-xl text-2xl"
-          />
-
-          <input
-            placeholder="Location"
-            value={location}
-            onChange={(e) =>
-              setLocation(e.target.value)
-            }
-            className="bg-zinc-800 p-5 rounded-xl text-2xl"
-          />
-
-          <input
-            placeholder="Image URL"
-            value={image}
-            onChange={(e) =>
-              setImage(e.target.value)
-            }
-            className="bg-zinc-800 p-5 rounded-xl text-2xl"
-          />
-
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) =>
-              setSelectedDate(
-                e.target.value
-              )
-            }
-            className="bg-zinc-800 p-5 rounded-xl text-2xl"
-          />
-
-          <button
-            onClick={createEvent}
-            className="bg-purple-600 p-5 rounded-xl text-2xl font-bold"
-          >
-            Crea Evento
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
-        {events.map((event) => (
-          <div
-            key={event.id}
-            className="bg-zinc-900 p-6 rounded-3xl"
-          >
-            <h3 className="text-4xl font-bold">
-              {event.title}
-            </h3>
-
-            <p className="text-2xl mt-4 text-gray-300">
-              {event.description}
-            </p>
-
-            <p className="text-xl mt-4 text-gray-400">
-              {event.location}
-            </p>
-
-            <p className="text-xl mt-2 text-gray-500">
-              {event.date}
-            </p>
-
-            {event.image && (
-              <img
-                src={event.image}
-                alt={event.title}
-                className="mt-4 rounded-2xl"
-              />
-            )}
-          </div>
-        ))}
-      </div>
+      ))}
     </main>
   );
 }
