@@ -7,20 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  events Event[]
+}
 
 model Event {
   id          Int      @id @default(autoincrement())
   title       String
   description String
   location    String
-  date        DateTime?
-  price       Float?
-  image       String?
-  qrCode      String?
-  createdAt   DateTime @default(now())
+  image       String
+  date        DateTime
+  price       Float
+
+  createdAt DateTime @default(now())
 
   userId Int
-  user   User @relation(fields: [userId], references: [id])
-
-  tickets Ticket[]
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
