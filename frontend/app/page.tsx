@@ -19,39 +19,36 @@ export default function Home() {
   const [price, setPrice] = useState("");
 
   const [token, setToken] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetchEvents();
   }, []);
 
-  async function fetchEvents() {
-  try {
-    const res = await fetch(`${API_URL}/events`);
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage("");
+      }, 3000);
 
-    const data = await res.json();
-
-    console.log("EVENTS RESPONSE:", data);
-
-    if (Array.isArray(data)) {
-      setEvents(data);
-    } else if (Array.isArray(data.events)) {
-      setEvents(data.events);
-    } else if (Array.isArray(data.data)) {
-      setEvents(data.data);
-    } else {
-      setEvents([]);
+      return () => clearTimeout(timer);
     }
-  } catch (err) {
-    console.error(err);
-    setEvents([]);
-  }
-}
+  }, [message]);
+
+  async function fetchEvents() {
     try {
       const res = await fetch(`${API_URL}/events`);
+
       const data = await res.json();
+
+      console.log("EVENTS RESPONSE:", data);
 
       if (Array.isArray(data)) {
         setEvents(data);
+      } else if (Array.isArray(data.events)) {
+        setEvents(data.events);
+      } else if (Array.isArray(data.data)) {
+        setEvents(data.data);
       } else {
         setEvents([]);
       }
@@ -74,13 +71,12 @@ export default function Home() {
         }),
       });
 
-      const data = await res.json();
+      await res.json();
 
-      alert("Registration completed");
-      console.log(data);
+      setMessage("Registration completed");
     } catch (err) {
       console.error(err);
-      alert("Registration failed");
+      setMessage("Registration failed");
     }
   }
 
@@ -99,17 +95,19 @@ export default function Home() {
 
       const data = await res.json();
 
+      console.log("LOGIN RESPONSE:", data);
+
       if (data.access_token) {
         setToken(data.access_token);
         localStorage.setItem("token", data.access_token);
 
-        alert("Login successful");
+        setMessage("Login successful");
       } else {
-        alert("Login failed");
+        setMessage("Login failed");
       }
     } catch (err) {
       console.error(err);
-      alert("Login error");
+      setMessage("Login error");
     }
   }
 
@@ -134,9 +132,9 @@ export default function Home() {
 
       const data = await res.json();
 
-      console.log(data);
+      console.log("CREATE EVENT RESPONSE:", data);
 
-      alert("Event created");
+      setMessage("Event created");
 
       setTitle("");
       setDescription("");
@@ -147,7 +145,7 @@ export default function Home() {
       fetchEvents();
     } catch (err) {
       console.error(err);
-      alert("Error creating event");
+      setMessage("Error creating event");
     }
   }
 
@@ -161,6 +159,25 @@ export default function Home() {
         color: "#111111",
       }}
     >
+      {message && (
+        <div
+          style={{
+            position: "fixed",
+            top: "30px",
+            right: "30px",
+            background: "#111",
+            color: "#fff",
+            padding: "18px 28px",
+            borderRadius: "18px",
+            fontSize: "16px",
+            zIndex: 999,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+          }}
+        >
+          {message}
+        </div>
+      )}
+
       <div style={{ marginBottom: "80px" }}>
         <h1
           style={{
@@ -318,7 +335,21 @@ export default function Home() {
             gap: "24px",
           }}
         >
-          {events.map((event, index) => (
+          {events.length === 0 && (
+            <div
+              style={{
+                background: "#f5f5f7",
+                padding: "32px",
+                borderRadius: "24px",
+                color: "#666",
+                fontSize: "18px",
+              }}
+            >
+              No events yet
+            </div>
+          )}
+
+          {events.map((event: any, index: number) => (
             <div
               key={index}
               style={{
@@ -333,7 +364,7 @@ export default function Home() {
                   marginBottom: "12px",
                 }}
               >
-                {event.title}
+                {event.title || "Untitled Event"}
               </h3>
 
               <p
@@ -342,20 +373,35 @@ export default function Home() {
                   marginBottom: "12px",
                 }}
               >
-                {event.description}
+                {event.description || "No description"}
               </p>
 
-              <p>{event.location}</p>
+              <p
+                style={{
+                  marginBottom: "8px",
+                  color: "#333",
+                }}
+              >
+                📍 {event.location || "Unknown location"}
+              </p>
 
-              <p>{event.date}</p>
+              <p
+                style={{
+                  marginBottom: "8px",
+                  color: "#333",
+                }}
+              >
+                📅 {event.date || "No date"}
+              </p>
 
               <p
                 style={{
                   marginTop: "16px",
                   fontWeight: 600,
+                  fontSize: "20px",
                 }}
               >
-                € {event.price}
+                € {event.price || 0}
               </p>
             </div>
           ))}
