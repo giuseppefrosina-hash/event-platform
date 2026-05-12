@@ -1,12 +1,12 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Delete,
-  Param,
   Body,
-  UseGuards,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 
 import { EventsService } from './events.service';
@@ -15,18 +15,16 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @Controller('events')
 export class EventsController {
   constructor(
-    private readonly eventsService: EventsService,
+    private eventsService: EventsService,
   ) {}
 
   @Get()
-  async findAll() {
+  findAll() {
     return this.eventsService.findAll();
   }
 
   @Get(':id')
-  async findOne(
-    @Param('id') id: string,
-  ) {
+  findOne(@Param('id') id: string) {
     return this.eventsService.findOne(
       Number(id),
     );
@@ -34,25 +32,25 @@ export class EventsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(
+  create(
     @Body() body: any,
     @Req() req: any,
   ) {
+    console.log(
+      'REQUEST USER:',
+      req.user,
+    );
+
     return this.eventsService.create(
       body,
-      req.user.id,
+      req.user.userId,
     );
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async delete(
-    @Param('id') id: string,
-    @Req() req: any,
-  ) {
-    return this.eventsService.delete(
+  remove(@Param('id') id: string) {
+    return this.eventsService.remove(
       Number(id),
-      req.user.id,
     );
   }
 }
