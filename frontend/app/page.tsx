@@ -231,11 +231,14 @@ export default function Home() {
               <p className="mt-3">📍 {event.location}</p>
 
               <p className="mt-2">
-                📅 {new Date(event.date).toLocaleString()}
+                📅{" "}
+                {event.date
+                  ? new Date(event.date).toLocaleString()
+                  : "No date"}
               </p>
 
               <p className="mt-2 text-green-400 font-bold">
-                € {event.price}
+                € {event.price || 0}
               </p>
 
               <div className="flex gap-3 mt-5">
