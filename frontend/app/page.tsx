@@ -26,6 +26,8 @@ export default function Home() {
       const res = await fetch(`${API}/events`);
       const data = await res.json();
 
+      console.log("EVENTS:", data);
+
       if (Array.isArray(data)) {
         setEvents(data);
       } else {
@@ -39,7 +41,7 @@ export default function Home() {
 
   async function register() {
     try {
-      await fetch(`${API}/auth/register`, {
+      const res = await fetch(`${API}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -50,9 +52,14 @@ export default function Home() {
         }),
       });
 
-      alert("Registered");
+      const data = await res.json();
+
+      console.log(data);
+
+      alert("Registration completed");
     } catch (err) {
       console.log(err);
+      alert("Registration failed");
     }
   }
 
@@ -71,11 +78,17 @@ export default function Home() {
 
       const data = await res.json();
 
-      localStorage.setItem("token", data.access_token);
+      console.log("LOGIN:", data);
 
-      alert("Logged in");
+      if (data.access_token) {
+        localStorage.setItem("token", data.access_token);
+        alert("Login successful");
+      } else {
+        alert("Login failed");
+      }
     } catch (err) {
       console.log(err);
+      alert("Login error");
     }
   }
 
@@ -83,7 +96,12 @@ export default function Home() {
     try {
       const token = localStorage.getItem("token");
 
-      await fetch(`${API}/events`, {
+      if (!token) {
+        alert("Login required");
+        return;
+      }
+
+      const res = await fetch(`${API}/events`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -97,16 +115,21 @@ export default function Home() {
         }),
       });
 
+      const data = await res.json();
+
+      console.log("CREATE EVENT:", data);
+
+      alert("Event created");
+
       setTitle("");
       setDescription("");
       setLocation("");
       setDate("");
 
       loadEvents();
-
-      alert("Event created");
     } catch (err) {
       console.log(err);
+      alert("Error creating event");
     }
   }
 
@@ -114,8 +137,8 @@ export default function Home() {
     <main
       style={{
         minHeight: "100vh",
-        background: "#f5f5f7",
-        padding: "80px",
+        background: "#ffffff",
+        padding: "60px",
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
       }}
@@ -125,9 +148,8 @@ export default function Home() {
           style={{
             fontSize: 72,
             fontWeight: 700,
-            letterSpacing: "-3px",
             color: "#111",
-            marginBottom: 12,
+            marginBottom: 10,
           }}
         >
           Event Platform
@@ -135,10 +157,9 @@ export default function Home() {
 
         <p
           style={{
-            fontSize: 32,
+            fontSize: 28,
             color: "#666",
             marginBottom: 60,
-            fontWeight: 400,
           }}
         >
           Discover premium experiences
@@ -148,37 +169,16 @@ export default function Home() {
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: 32,
+            gap: 30,
             marginBottom: 60,
           }}
         >
-          {/* LOGIN */}
+          {/* AUTH */}
 
-          <div
-            style={{
-              background: "white",
-              borderRadius: 32,
-              padding: 40,
-              boxShadow: "0 10px 40px rgba(0,0,0,0.06)",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: 28,
-                marginBottom: 30,
-                color: "#111",
-              }}
-            >
-              Authentication
-            </h2>
+          <div style={cardStyle}>
+            <h2 style={titleStyle}>Authentication</h2>
 
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 18,
-              }}
-            >
+            <div style={columnStyle}>
               <input
                 placeholder="Email"
                 value={email}
@@ -194,7 +194,7 @@ export default function Home() {
                 style={inputStyle}
               />
 
-              <div style={{ display: "flex", gap: 16 }}>
+              <div style={{ display: "flex", gap: 12 }}>
                 <button onClick={register} style={secondaryButton}>
                   Register
                 </button>
@@ -208,31 +208,10 @@ export default function Home() {
 
           {/* CREATE EVENT */}
 
-          <div
-            style={{
-              background: "white",
-              borderRadius: 32,
-              padding: 40,
-              boxShadow: "0 10px 40px rgba(0,0,0,0.06)",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: 28,
-                marginBottom: 30,
-                color: "#111",
-              }}
-            >
-              Create Event
-            </h2>
+          <div style={cardStyle}>
+            <h2 style={titleStyle}>Create Event</h2>
 
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 18,
-              }}
-            >
+            <div style={columnStyle}>
               <input
                 placeholder="Title"
                 value={title}
@@ -268,11 +247,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* EVENTS */}
-
         <h2
           style={{
-            fontSize: 40,
+            fontSize: 42,
             marginBottom: 30,
             color: "#111",
           }}
@@ -288,19 +265,11 @@ export default function Home() {
           }}
         >
           {events.map((event, index) => (
-            <div
-              key={index}
-              style={{
-                background: "white",
-                borderRadius: 28,
-                padding: 28,
-                boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
-              }}
-            >
+            <div key={index} style={eventCard}>
               <h3
                 style={{
                   fontSize: 24,
-                  marginBottom: 12,
+                  marginBottom: 14,
                   color: "#111",
                 }}
               >
@@ -309,7 +278,7 @@ export default function Home() {
 
               <p
                 style={{
-                  color: "#666",
+                  color: "#555",
                   marginBottom: 18,
                   lineHeight: 1.6,
                 }}
@@ -317,17 +286,11 @@ export default function Home() {
                 {event.description}
               </p>
 
-              <div style={{ color: "#888", fontSize: 15 }}>
+              <div style={{ color: "#777" }}>
                 📍 {event.location || "Unknown"}
               </div>
 
-              <div
-                style={{
-                  color: "#888",
-                  fontSize: 15,
-                  marginTop: 8,
-                }}
-              >
+              <div style={{ color: "#777", marginTop: 8 }}>
                 📅{" "}
                 {event.date
                   ? new Date(event.date).toLocaleString()
@@ -341,21 +304,41 @@ export default function Home() {
   );
 }
 
+const cardStyle = {
+  background: "#fff",
+  borderRadius: 30,
+  padding: 40,
+  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+};
+
+const titleStyle = {
+  fontSize: 32,
+  marginBottom: 30,
+  color: "#111",
+};
+
+const columnStyle = {
+  display: "flex",
+  flexDirection: "column" as const,
+  gap: 18,
+};
+
 const inputStyle = {
   width: "100%",
-  padding: "18px 20px",
+  padding: "18px",
   borderRadius: 18,
   border: "1px solid #ddd",
   fontSize: 16,
+  background: "#fff",
+  color: "#111",
   outline: "none",
-  background: "#fafafa",
 };
 
 const primaryButton = {
   background: "#0071e3",
   color: "white",
   border: "none",
-  padding: "16px 28px",
+  padding: "16px 26px",
   borderRadius: 16,
   fontSize: 16,
   fontWeight: 600,
@@ -363,10 +346,10 @@ const primaryButton = {
 };
 
 const secondaryButton = {
-  background: "#e8e8ed",
+  background: "#f2f2f2",
   color: "#111",
   border: "none",
-  padding: "16px 28px",
+  padding: "16px 26px",
   borderRadius: 16,
   fontSize: 16,
   fontWeight: 600,
@@ -377,9 +360,16 @@ const greenButton = {
   background: "#34c759",
   color: "white",
   border: "none",
-  padding: "18px 28px",
+  padding: "18px",
   borderRadius: 18,
   fontSize: 17,
   fontWeight: 600,
   cursor: "pointer",
+};
+
+const eventCard = {
+  background: "#fff",
+  borderRadius: 26,
+  padding: 28,
+  boxShadow: "0 10px 24px rgba(0,0,0,0.05)",
 };
