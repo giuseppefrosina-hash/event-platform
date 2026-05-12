@@ -1,12 +1,12 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
-  Param,
   Post,
-  Req,
+  Body,
+  Param,
+  Delete,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 
 import { EventsService } from './events.service';
@@ -15,7 +15,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @Controller('events')
 export class EventsController {
   constructor(
-    private eventsService: EventsService,
+    private readonly eventsService: EventsService,
   ) {}
 
   @Get()
@@ -34,13 +34,8 @@ export class EventsController {
   @Post()
   create(
     @Body() body: any,
-    @Req() req: any,
+    @Request() req: any,
   ) {
-    console.log(
-      'REQUEST USER:',
-      req.user,
-    );
-
     return this.eventsService.create(
       body,
       req.user.userId,
@@ -48,8 +43,8 @@ export class EventsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.eventsService.remove(
+  delete(@Param('id') id: string) {
+    return this.eventsService.delete(
       Number(id),
     );
   }
