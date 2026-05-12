@@ -8,25 +8,19 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(cuid())
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
-
-  events Event[]
 }
 
 model Event {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(cuid())
   title       String
   description String
   location    String
   image       String
   date        DateTime
-  price       Float
-
-  createdAt DateTime @default(now())
-
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  price       Float    @default(0)
+  createdAt   DateTime @default(now())
 }
