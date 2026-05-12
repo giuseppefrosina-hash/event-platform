@@ -41,11 +41,11 @@ export class EventsService {
             data.image ||
             'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
           date: new Date(data.date),
-          price: Number(data.price || 0),
         },
       });
     } catch (error) {
       console.log(error);
+
       return {
         error: 'Cannot create event',
       };
@@ -60,7 +60,9 @@ export class EventsService {
     });
 
     if (!event) {
-      throw new NotFoundException('Event not found');
+      throw new NotFoundException(
+        'Event not found',
+      );
     }
 
     return this.prisma.event.delete({
