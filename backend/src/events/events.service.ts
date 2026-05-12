@@ -1,4 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -17,34 +20,39 @@ export class EventsService {
   }
 
   async findOne(id: number) {
-    return this.prisma.event.findUnique({
-      where: {
-        id,
-      },
-    });
+    const event =
+      await this.prisma.event.findUnique({
+        where: { id },
+      });
+
+    if (!event) {
+      throw new NotFoundException(
+        'Evento non trovato',
+      );
+    }
+
+    return event;
   }
 
   async create(
-    body: any,
+    data: any,
     userId: number,
   ) {
     return this.prisma.event.create({
       data: {
-        title: body.title,
-
-        description:
-          body.description,
-
-        location: body.location,
-
-        image:
-          body.image ||
-          'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
-
-        date: new Date(body.date),
-
+        ...data,
         userId,
       },
+    });
+  }
+
+  async update(
+    id: number,
+    data: any,
+  ) {
+    return this.prisma.event.update({
+      where: { id },
+      data,
     });
   }
 

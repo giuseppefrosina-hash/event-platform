@@ -6,7 +6,8 @@ import axios from 'axios';
 const API_URL = 'https://event-platform-vr94.onrender.com';
 
 export default function HomePage() {
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<any[]>([]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -14,10 +15,11 @@ export default function HomePage() {
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
 
+  const [editingId, setEditingId] = useState<number | null>(null);
+
   async function loadEvents() {
     try {
       const res = await axios.get(`${API_URL}/events`);
-      console.log('EVENTS:', res.data);
       setEvents(res.data);
     } catch (err) {
       console.error(err);
@@ -30,12 +32,11 @@ export default function HomePage() {
 
   async function register() {
     try {
-      const res = await axios.post(`${API_URL}/auth/register`, {
+      await axios.post(`${API_URL}/auth/register`, {
         email,
         password,
       });
 
-      console.log('REGISTER RESPONSE:', res.data);
       alert('Utente registrato');
     } catch (err) {
       console.error(err);
@@ -50,14 +51,7 @@ export default function HomePage() {
         password,
       });
 
-      console.log('LOGIN RESPONSE:', res.data);
-
       localStorage.setItem('token', res.data.access_token);
-
-      console.log(
-        'TOKEN SALVATO:',
-        localStorage.getItem('token')
-      );
 
       alert('Login effettuato');
     } catch (err) {
@@ -70,9 +64,7 @@ export default function HomePage() {
     try {
       const token = localStorage.getItem('token');
 
-      console.log('TOKEN USATO:', token);
-
-      const res = await axios.post(
+      await axios.post(
         `${API_URL}/events`,
         {
           title,
@@ -90,24 +82,106 @@ export default function HomePage() {
         }
       );
 
-      console.log('CREATE EVENT RESPONSE:', res.data);
+      alert('Evento creato');
 
-      alert('Evento creato!');
+      resetForm();
 
       loadEvents();
     } catch (err) {
-      console.error('CREATE EVENT ERROR:', err);
+      console.error(err);
       alert('Errore creazione evento');
+    }
+  }
+
+  async function deleteEvent(id: number) {
+    try {
+      const token = localStorage.getItem('token');
+
+      await axios.delete(`${API_URL}/events/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      alert('Evento eliminato');
+
+      loadEvents();
+    } catch (err) {
+      console.error(err);
+      alert('Errore eliminazione');
+    }
+  }
+
+  async function updateEvent() {
+    try {
+      const token = localStorage.getItem('token');
+
+      await axios.patch(
+        `${API_URL}/events/${editingId}`,
+        {
+          title,
+          description,
+          location,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert('Evento aggiornato');
+
+      setEditingId(null);
+
+      resetForm();
+
+      loadEvents();
+    } catch (err) {
+      console.error(err);
+      alert('Errore update');
+    }
+  }
+
+  function editEvent(event: any) {
+    setEditingId(event.id);
+
+    setTitle(event.title);
+    setDescription(event.description);
+    setLocation(event.location);
+  }
+
+  function resetForm() {
+    setTitle('');
+    setDescription('');
+    setLocation('');
+  }
+
+  async function checkout(event: any) {
+    try {
+      const res = await axios.post(
+        `${API_URL}/stripe/create-checkout-session`,
+        {
+          title: event.title,
+          price: event.price,
+        }
+      );
+
+      window.location.href = res.data.url;
+    } catch (err) {
+      console.error(err);
+      alert('Errore Stripe');
     }
   }
 
   return (
     <main style={{ padding: 40 }}>
+
       <h1>Event Platform</h1>
 
       <hr />
 
-      <h2>Register / Login</h2>
+      <h2>Auth</h2>
 
       <input
         placeholder="email"
@@ -119,8 +193,8 @@ export default function HomePage() {
       <br />
 
       <input
-        placeholder="password"
         type="password"
+        placeholder="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
@@ -128,15 +202,22 @@ export default function HomePage() {
       <br />
       <br />
 
-      <button onClick={register}>Register</button>
+      <button onClick={register}>
+        Register
+      </button>
 
-      <button onClick={login} style={{ marginLeft: 10 }}>
+      <button
+        onClick={login}
+        style={{ marginLeft: 10 }}
+      >
         Login
       </button>
 
       <hr />
 
-      <h2>Create Event</h2>
+      <h2>
+        {editingId ? 'Update Event' : 'Create Event'}
+      </h2>
 
       <input
         placeholder="title"
@@ -165,15 +246,21 @@ export default function HomePage() {
       <br />
       <br />
 
-      <button onClick={createEvent}>
-        Create Event
-      </button>
+      {editingId ? (
+        <button onClick={updateEvent}>
+          Update Event
+        </button>
+      ) : (
+        <button onClick={createEvent}>
+          Create Event
+        </button>
+      )}
 
       <hr />
 
       <h2>All Events</h2>
 
-      {events.map((event: any) => (
+      {events.map((event) => (
         <div
           key={event.id}
           style={{
@@ -194,6 +281,26 @@ export default function HomePage() {
           <p>{event.location}</p>
 
           <p>€ {event.price}</p>
+
+          <button
+            onClick={() => checkout(event)}
+          >
+            Buy Ticket
+          </button>
+
+          <button
+            onClick={() => editEvent(event)}
+            style={{ marginLeft: 10 }}
+          >
+            Edit
+          </button>
+
+          <button
+            onClick={() => deleteEvent(event.id)}
+            style={{ marginLeft: 10 }}
+          >
+            Delete
+          </button>
         </div>
       ))}
     </main>
