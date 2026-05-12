@@ -2,30 +2,21 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { toast } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
-const API =
-  "https://event-platform-vr94.onrender.com";
+const API = "https://event-platform-vr94.onrender.com";
 
 export default function Home() {
-  const [email, setEmail] =
-    useState("");
-
+  const [email, setEmail] = useState("");
   const [password, setPassword] =
     useState("");
 
-  const [title, setTitle] =
-    useState("");
-
+  const [title, setTitle] = useState("");
   const [description, setDescription] =
     useState("");
-
   const [location, setLocation] =
     useState("");
-
-  const [image, setImage] =
-    useState("");
-
+  const [image, setImage] = useState("");
   const [selectedDate, setSelectedDate] =
     useState("");
 
@@ -48,11 +39,11 @@ export default function Home() {
         response.data
       );
 
-      toast.success("Registrazione completata");
-    } catch (err: any) {
+      toast.success("Registrazione ok");
+    } catch (err) {
       console.log(
         "REGISTER ERROR:",
-        err?.response?.data || err
+        err
       );
 
       toast.error("Errore registrazione");
@@ -76,19 +67,19 @@ export default function Home() {
 
       localStorage.setItem(
         "token",
-        response.data.token
+        response.data.access_token
       );
 
       console.log(
         "TOKEN SALVATO:",
-        response.data.token
+        localStorage.getItem("token")
       );
 
       toast.success("Login effettuato");
-    } catch (err: any) {
+    } catch (err) {
       console.log(
         "LOGIN ERROR:",
-        err?.response?.data || err
+        err
       );
 
       toast.error("Errore login");
@@ -101,16 +92,11 @@ export default function Home() {
         `${API}/events`
       );
 
-      console.log(
-        "EVENTS:",
-        response.data
-      );
-
       setEvents(response.data);
-    } catch (err: any) {
+    } catch (err) {
       console.log(
         "FETCH EVENTS ERROR:",
-        err?.response?.data || err
+        err
       );
     }
   }
@@ -121,12 +107,14 @@ export default function Home() {
         localStorage.getItem("token");
 
       console.log(
-        "TOKEN RECUPERATO:",
+        "TOKEN USATO:",
         token
       );
 
       if (!token) {
-        toast.error("Token mancante");
+        toast.error(
+          "Devi fare login prima"
+        );
         return;
       }
 
@@ -142,14 +130,12 @@ export default function Home() {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type":
-              "application/json",
           },
         }
       );
 
       console.log(
-        "EVENTO CREATO:",
+        "CREATE EVENT RESPONSE:",
         response.data
       );
 
@@ -162,20 +148,10 @@ export default function Home() {
       setSelectedDate("");
 
       fetchEvents();
-    } catch (err: any) {
+    } catch (err) {
       console.log(
-        "ERRORE COMPLETO:",
+        "CREATE EVENT ERROR:",
         err
-      );
-
-      console.log(
-        "RISPOSTA SERVER:",
-        err?.response?.data
-      );
-
-      console.log(
-        "STATUS:",
-        err?.response?.status
       );
 
       toast.error(
@@ -190,136 +166,139 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white p-8">
-      <h1 className="text-7xl font-bold mb-4">
+      <Toaster />
+
+      <h1 className="text-7xl font-bold">
         Event Platform
       </h1>
 
-      <p className="text-2xl text-gray-400 mb-12">
+      <p className="text-3xl text-gray-400 mt-4 mb-10">
         Premium Event SaaS Dashboard
       </p>
 
-      <div className="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 max-w-4xl mb-10">
+      <div className="bg-zinc-900 p-8 rounded-3xl mb-10">
         <h2 className="text-5xl font-bold mb-8">
           Login / Register
         </h2>
 
         <div className="flex flex-col gap-4">
           <input
-            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
+            type="email"
             placeholder="Email"
             value={email}
             onChange={(e) =>
               setEmail(e.target.value)
             }
+            className="bg-zinc-800 p-5 rounded-xl text-2xl"
           />
 
           <input
             type="password"
-            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
             placeholder="Password"
             value={password}
             onChange={(e) =>
               setPassword(e.target.value)
             }
+            className="bg-zinc-800 p-5 rounded-xl text-2xl"
           />
 
           <button
             onClick={register}
-            className="bg-blue-600 hover:bg-blue-700 rounded-2xl p-6 text-3xl font-bold"
+            className="bg-blue-600 p-5 rounded-xl text-2xl font-bold"
           >
             Registrati
           </button>
 
           <button
             onClick={login}
-            className="bg-green-500 hover:bg-green-600 rounded-2xl p-6 text-3xl font-bold"
+            className="bg-green-500 p-5 rounded-xl text-2xl font-bold"
           >
             Login
           </button>
         </div>
       </div>
 
-      <div className="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 max-w-4xl mb-10">
+      <div className="bg-zinc-900 p-8 rounded-3xl mb-10">
         <h2 className="text-5xl font-bold mb-8">
           Crea Evento
         </h2>
 
         <div className="flex flex-col gap-4">
           <input
-            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
             placeholder="Titolo"
             value={title}
             onChange={(e) =>
               setTitle(e.target.value)
             }
+            className="bg-zinc-800 p-5 rounded-xl text-2xl"
           />
 
-          <textarea
-            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
+          <input
             placeholder="Descrizione"
             value={description}
             onChange={(e) =>
               setDescription(e.target.value)
             }
+            className="bg-zinc-800 p-5 rounded-xl text-2xl"
           />
 
           <input
-            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
             placeholder="Location"
             value={location}
             onChange={(e) =>
               setLocation(e.target.value)
             }
+            className="bg-zinc-800 p-5 rounded-xl text-2xl"
           />
 
           <input
-            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
             placeholder="Image URL"
             value={image}
             onChange={(e) =>
               setImage(e.target.value)
             }
+            className="bg-zinc-800 p-5 rounded-xl text-2xl"
           />
 
           <input
             type="date"
-            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
             value={selectedDate}
             onChange={(e) =>
               setSelectedDate(
                 e.target.value
               )
             }
+            className="bg-zinc-800 p-5 rounded-xl text-2xl"
           />
 
           <button
             onClick={createEvent}
-            className="bg-purple-600 hover:bg-purple-700 rounded-2xl p-6 text-3xl font-bold"
+            className="bg-purple-600 p-5 rounded-xl text-2xl font-bold"
           >
             Crea Evento
           </button>
         </div>
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {events.map((event) => (
           <div
             key={event.id}
-            className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6"
+            className="bg-zinc-900 p-6 rounded-3xl"
           >
-            <h3 className="text-4xl font-bold mb-4">
+            <h3 className="text-4xl font-bold">
               {event.title}
             </h3>
 
-            <p className="text-2xl text-gray-300 mb-4">
+            <p className="text-2xl mt-4 text-gray-300">
               {event.description}
             </p>
 
-            <p className="text-xl text-gray-400">
+            <p className="text-xl mt-4 text-gray-400">
               {event.location}
             </p>
 
-            <p className="text-xl text-gray-500">
+            <p className="text-xl mt-2 text-gray-500">
               {event.date}
             </p>
 
