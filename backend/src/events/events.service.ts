@@ -10,11 +10,16 @@ export class EventsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll() {
-    return this.prisma.event.findMany({
-      orderBy: {
-        date: 'asc',
-      },
-    });
+    try {
+      return await this.prisma.event.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
   }
 
   async findOne(id: string) {
@@ -26,18 +31,25 @@ export class EventsService {
   }
 
   async create(data: any) {
-    return this.prisma.event.create({
-      data: {
-        title: data.title,
-        description: data.description,
-        location: data.location,
-        image:
-          data.image ||
-          'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
-        date: new Date(data.date),
-        price: Number(data.price || 0),
-      },
-    });
+    try {
+      return await this.prisma.event.create({
+        data: {
+          title: data.title,
+          description: data.description,
+          location: data.location,
+          image:
+            data.image ||
+            'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
+          date: new Date(data.date),
+          price: Number(data.price || 0),
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      return {
+        error: 'Cannot create event',
+      };
+    }
   }
 
   async delete(id: string) {
