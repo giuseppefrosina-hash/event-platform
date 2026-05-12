@@ -42,10 +42,15 @@ export class EventsController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  delete(@Param('id') id: string) {
+  delete(
+    @Param('id') id: string,
+    @Request() req: any,
+  ) {
     return this.eventsService.delete(
       Number(id),
+      req.user.userId,
     );
   }
 }
