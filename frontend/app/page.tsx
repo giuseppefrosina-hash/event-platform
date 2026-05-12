@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const API =
+const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "https://event-platform-vr94.onrender.com";
 
@@ -16,17 +16,18 @@ export default function Home() {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
+  const [price, setPrice] = useState("");
+
+  const [token, setToken] = useState("");
 
   useEffect(() => {
-    loadEvents();
+    fetchEvents();
   }, []);
 
-  async function loadEvents() {
+  async function fetchEvents() {
     try {
-      const res = await fetch(`${API}/events`);
+      const res = await fetch(`${API_URL}/events`);
       const data = await res.json();
-
-      console.log("EVENTS:", data);
 
       if (Array.isArray(data)) {
         setEvents(data);
@@ -34,14 +35,14 @@ export default function Home() {
         setEvents([]);
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setEvents([]);
     }
   }
 
   async function register() {
     try {
-      const res = await fetch(`${API}/auth/register`, {
+      const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,6 +50,64 @@ export default function Home() {
         body: JSON.stringify({
           email,
           password,
+        }),
+      });
+
+      const data = await res.json();
+
+      alert("Registration completed");
+      console.log(data);
+    } catch (err) {
+      console.error(err);
+      alert("Registration failed");
+    }
+  }
+
+  async function login() {
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.access_token) {
+        setToken(data.access_token);
+        localStorage.setItem("token", data.access_token);
+
+        alert("Login successful");
+      } else {
+        alert("Login failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Login error");
+    }
+  }
+
+  async function createEvent() {
+    try {
+      const savedToken = token || localStorage.getItem("token");
+
+      const res = await fetch(`${API_URL}/events`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${savedToken}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          location,
+          date,
+          price: Number(price),
         }),
       });
 
@@ -56,79 +115,17 @@ export default function Home() {
 
       console.log(data);
 
-      alert("Registration completed");
-    } catch (err) {
-      console.log(err);
-      alert("Registration failed");
-    }
-  }
-
-  async function login() {
-    try {
-      const res = await fetch(`${API}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
-
-      const data = await res.json();
-
-      console.log("LOGIN:", data);
-
-      if (data.access_token) {
-        localStorage.setItem("token", data.access_token);
-        alert("Login successful");
-      } else {
-        alert("Login failed");
-      }
-    } catch (err) {
-      console.log(err);
-      alert("Login error");
-    }
-  }
-
-  async function createEvent() {
-    try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        alert("Login required");
-        return;
-      }
-
-      const res = await fetch(`${API}/events`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          location,
-          date,
-        }),
-      });
-
-      const data = await res.json();
-
-      console.log("CREATE EVENT:", data);
-
       alert("Event created");
 
       setTitle("");
       setDescription("");
       setLocation("");
       setDate("");
+      setPrice("");
 
-      loadEvents();
+      fetchEvents();
     } catch (err) {
-      console.log(err);
+      console.error(err);
       alert("Error creating event");
     }
   }
@@ -138,18 +135,17 @@ export default function Home() {
       style={{
         minHeight: "100vh",
         background: "#ffffff",
-        padding: "60px",
-        fontFamily:
-          '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
+        padding: "80px",
+        fontFamily: "Inter, sans-serif",
+        color: "#111111",
       }}
     >
-      <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+      <div style={{ marginBottom: "80px" }}>
         <h1
           style={{
-            fontSize: 72,
+            fontSize: "72px",
             fontWeight: 700,
-            color: "#111",
-            marginBottom: 10,
+            marginBottom: "16px",
           }}
         >
           Event Platform
@@ -157,101 +153,139 @@ export default function Home() {
 
         <p
           style={{
-            fontSize: 28,
+            fontSize: "28px",
             color: "#666",
-            marginBottom: 60,
           }}
         >
           Discover premium experiences
         </p>
+      </div>
 
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "40px",
+          marginBottom: "80px",
+        }}
+      >
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 30,
-            marginBottom: 60,
+            background: "#f5f5f7",
+            borderRadius: "32px",
+            padding: "40px",
           }}
         >
-          {/* AUTH */}
+          <h2
+            style={{
+              fontSize: "32px",
+              marginBottom: "32px",
+            }}
+          >
+            Authentication
+          </h2>
 
-          <div style={cardStyle}>
-            <h2 style={titleStyle}>Authentication</h2>
+          <input
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={inputStyle}
+          />
 
-            <div style={columnStyle}>
-              <input
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={inputStyle}
-              />
+          <input
+            placeholder="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={inputStyle}
+          />
 
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={inputStyle}
-              />
+          <div
+            style={{
+              display: "flex",
+              gap: "16px",
+              marginTop: "24px",
+            }}
+          >
+            <button onClick={register} style={secondaryButton}>
+              Register
+            </button>
 
-              <div style={{ display: "flex", gap: 12 }}>
-                <button onClick={register} style={secondaryButton}>
-                  Register
-                </button>
-
-                <button onClick={login} style={primaryButton}>
-                  Login
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* CREATE EVENT */}
-
-          <div style={cardStyle}>
-            <h2 style={titleStyle}>Create Event</h2>
-
-            <div style={columnStyle}>
-              <input
-                placeholder="Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                style={inputStyle}
-              />
-
-              <input
-                placeholder="Description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                style={inputStyle}
-              />
-
-              <input
-                placeholder="Location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                style={inputStyle}
-              />
-
-              <input
-                type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                style={inputStyle}
-              />
-
-              <button onClick={createEvent} style={greenButton}>
-                Create Event
-              </button>
-            </div>
+            <button onClick={login} style={primaryButton}>
+              Login
+            </button>
           </div>
         </div>
 
+        <div
+          style={{
+            background: "#f5f5f7",
+            borderRadius: "32px",
+            padding: "40px",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "32px",
+              marginBottom: "32px",
+            }}
+          >
+            Create Event
+          </h2>
+
+          <input
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            style={inputStyle}
+          />
+
+          <input
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            style={inputStyle}
+          />
+
+          <input
+            placeholder="Location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            style={inputStyle}
+          />
+
+          <input
+            type="datetime-local"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            style={inputStyle}
+          />
+
+          <input
+            placeholder="Price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            style={inputStyle}
+          />
+
+          <button
+            onClick={createEvent}
+            style={{
+              ...primaryButton,
+              width: "100%",
+              marginTop: "16px",
+            }}
+          >
+            Create Event
+          </button>
+        </div>
+      </div>
+
+      <div>
         <h2
           style={{
-            fontSize: 42,
-            marginBottom: 30,
-            color: "#111",
+            fontSize: "48px",
+            marginBottom: "32px",
           }}
         >
           Events
@@ -260,17 +294,22 @@ export default function Home() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))",
-            gap: 24,
+            gap: "24px",
           }}
         >
           {events.map((event, index) => (
-            <div key={index} style={eventCard}>
+            <div
+              key={index}
+              style={{
+                background: "#f5f5f7",
+                borderRadius: "28px",
+                padding: "32px",
+              }}
+            >
               <h3
                 style={{
-                  fontSize: 24,
-                  marginBottom: 14,
-                  color: "#111",
+                  fontSize: "28px",
+                  marginBottom: "12px",
                 }}
               >
                 {event.title}
@@ -278,24 +317,25 @@ export default function Home() {
 
               <p
                 style={{
-                  color: "#555",
-                  marginBottom: 18,
-                  lineHeight: 1.6,
+                  color: "#666",
+                  marginBottom: "12px",
                 }}
               >
                 {event.description}
               </p>
 
-              <div style={{ color: "#777" }}>
-                📍 {event.location || "Unknown"}
-              </div>
+              <p>{event.location}</p>
 
-              <div style={{ color: "#777", marginTop: 8 }}>
-                📅{" "}
-                {event.date
-                  ? new Date(event.date).toLocaleString()
-                  : "No date"}
-              </div>
+              <p>{event.date}</p>
+
+              <p
+                style={{
+                  marginTop: "16px",
+                  fontWeight: 600,
+                }}
+              >
+                € {event.price}
+              </p>
             </div>
           ))}
         </div>
@@ -304,72 +344,34 @@ export default function Home() {
   );
 }
 
-const cardStyle = {
-  background: "#fff",
-  borderRadius: 30,
-  padding: 40,
-  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-};
-
-const titleStyle = {
-  fontSize: 32,
-  marginBottom: 30,
-  color: "#111",
-};
-
-const columnStyle = {
-  display: "flex",
-  flexDirection: "column" as const,
-  gap: 18,
-};
-
 const inputStyle = {
   width: "100%",
-  padding: "18px",
-  borderRadius: 18,
-  border: "1px solid #ddd",
-  fontSize: 16,
-  background: "#fff",
+  padding: "22px",
+  borderRadius: "20px",
+  border: "1px solid #d2d2d7",
+  background: "#ffffff",
+  fontSize: "18px",
   color: "#111",
+  marginBottom: "18px",
   outline: "none",
 };
 
 const primaryButton = {
   background: "#0071e3",
-  color: "white",
+  color: "#fff",
   border: "none",
-  padding: "16px 26px",
-  borderRadius: 16,
-  fontSize: 16,
-  fontWeight: 600,
+  padding: "18px 28px",
+  borderRadius: "16px",
+  fontSize: "18px",
   cursor: "pointer",
 };
 
 const secondaryButton = {
-  background: "#f2f2f2",
+  background: "#e5e5ea",
   color: "#111",
   border: "none",
-  padding: "16px 26px",
-  borderRadius: 16,
-  fontSize: 16,
-  fontWeight: 600,
+  padding: "18px 28px",
+  borderRadius: "16px",
+  fontSize: "18px",
   cursor: "pointer",
-};
-
-const greenButton = {
-  background: "#34c759",
-  color: "white",
-  border: "none",
-  padding: "18px",
-  borderRadius: 18,
-  fontSize: 17,
-  fontWeight: 600,
-  cursor: "pointer",
-};
-
-const eventCard = {
-  background: "#fff",
-  borderRadius: 26,
-  padding: 28,
-  boxShadow: "0 10px 24px rgba(0,0,0,0.05)",
 };
