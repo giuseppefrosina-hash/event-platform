@@ -4,19 +4,14 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
 } from '@nestjs/common';
+
 import { EventsService } from './events.service';
 
 @Controller('events')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
-
-  @Post()
-  create(@Body() body: any) {
-    return this.eventsService.create(body);
-  }
 
   @Get()
   findAll() {
@@ -25,20 +20,16 @@ export class EventsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.eventsService.findOne(Number(id));
+    return this.eventsService.findOne(id);
   }
 
-  @Patch(':id')
-  update() {
-    return {
-      message: 'update disabled',
-    };
+  @Post()
+  create(@Body() body: any) {
+    return this.eventsService.create(body);
   }
 
   @Delete(':id')
-  remove() {
-    return {
-      message: 'delete disabled',
-    };
+  delete(@Param('id') id: string) {
+    return this.eventsService.delete(id);
   }
 }

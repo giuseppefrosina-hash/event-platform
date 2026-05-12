@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -8,12 +12,12 @@ export class EventsService {
   async findAll() {
     return this.prisma.event.findMany({
       orderBy: {
-        createdAt: 'desc',
+        date: 'asc',
       },
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     return this.prisma.event.findUnique({
       where: {
         id,
@@ -30,23 +34,23 @@ export class EventsService {
         image:
           data.image ||
           'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
-        date: data.date ? new Date(data.date) : new Date(),
-        price: data.price || 0,
-        userId: data.userId,
+        date: new Date(data.date),
+        price: Number(data.price || 0),
       },
     });
   }
 
-  async update(id: number, userId: number, data: any) {
-    return this.prisma.event.update({
+  async delete(id: string) {
+    const event = await this.prisma.event.findUnique({
       where: {
         id,
       },
-      data,
     });
-  }
 
-  async delete(id: number, userId: number) {
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
     return this.prisma.event.delete({
       where: {
         id,
