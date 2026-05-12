@@ -1,69 +1,40 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class EventsService {
-  constructor(
-    private prisma: PrismaService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  async findAll() {
-    return this.prisma.event.findMany({
-      orderBy: {
-        id: 'desc',
+  async create(data: any) {
+    return this.prisma.event.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        date: data.date ? new Date(data.date) : new Date(),
+        price: data.price || 0,
+        image: data.image || '',
+        userId: 1,
       },
     });
+  }
+
+  async findAll() {
+    try {
+      return await this.prisma.event.findMany({
+        orderBy: {
+          date: 'asc',
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
   }
 
   async findOne(id: number) {
-    const event =
-      await this.prisma.event.findUnique({
-        where: { id },
-      });
-
-    if (!event) {
-      throw new NotFoundException(
-        'Evento non trovato',
-      );
-    }
-
-    return event;
-  }
-
-  async create(
-    data: any,
-    userId: number,
-  ) {
-    return this.prisma.event.create({
-      data: {
-        ...data,
-        userId,
-      },
-    });
-  }
-
-  async update(
-    id: number,
-    data: any,
-  ) {
-    return this.prisma.event.update({
+    return this.prisma.event.findUnique({
       where: { id },
-      data,
-    });
-  }
-
-  async delete(
-    id: number,
-    userId: number,
-  ) {
-    return this.prisma.event.delete({
-      where: {
-        id,
-      },
     });
   }
 }
