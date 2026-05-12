@@ -43,7 +43,8 @@ export default function HomePage() {
   const [selectedDate, setSelectedDate] =
     useState<Date>(new Date());
 
-  const API = "http://localhost:3001";
+  const API =
+    "https://event-platform-vr94.onrender.com";
 
   useEffect(() => {
     fetchEvents();
@@ -165,7 +166,7 @@ export default function HomePage() {
   async function buyTicket() {
     try {
       const res = await axios.post(
-        "http://localhost:3001/stripe/create-checkout-session"
+        `${API}/stripe/create-checkout-session`
       );
 
       window.location.href =
@@ -368,10 +369,12 @@ export default function HomePage() {
                   </button>
 
                   <div className="bg-white p-3 rounded-2xl w-fit">
-                    <QRCodeCanvas
-  value={`https://event-platform-six-fawn.vercel.app/event/${event.id}`}
-  size={120}
-/>
+                    <QRCode
+                      value={`https://event-platform-six-fawn.vercel.app/event/${event.id}`}
+                      size={100}
+                    />
+                  </div>
+                </div>
               </div>
             ))}
           </div>
