@@ -2,69 +2,40 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
-import dynamic from "next/dynamic";
+const API =
+  "https://event-platform-vr94.onrender.com";
 
-const Calendar = dynamic(
-  () => import("react-calendar"),
-  { ssr: false }
-);
+export default function Home() {
+  const [email, setEmail] =
+    useState("");
 
-import "react-calendar/dist/Calendar.css";
+  const [password, setPassword] =
+    useState("");
 
-import toast, { Toaster } from "react-hot-toast";
+  const [title, setTitle] =
+    useState("");
 
-import QRCode from "react-qr-code";
-
-import {
-  CalendarDays,
-  MapPin,
-  Trash2,
-  Plus,
-  LogIn,
-  UserPlus,
-} from "lucide-react";
-
-export default function HomePage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [title, setTitle] = useState("");
   const [description, setDescription] =
     useState("");
+
   const [location, setLocation] =
     useState("");
-  const [image, setImage] = useState("");
+
+  const [image, setImage] =
+    useState("");
+
+  const [selectedDate, setSelectedDate] =
+    useState("");
 
   const [events, setEvents] = useState<any[]>(
     []
   );
 
-  const [selectedDate, setSelectedDate] =
-    useState<Date>(new Date());
-
-  const API =
-    "https://event-platform-vr94.onrender.com";
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  async function fetchEvents() {
-    try {
-      const res = await axios.get(
-        `${API}/events`
-      );
-
-      setEvents(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
   async function register() {
     try {
-      const res = await axios.post(
+      const response = await axios.post(
         `${API}/auth/register`,
         {
           email,
@@ -74,27 +45,23 @@ export default function HomePage() {
 
       console.log(
         "REGISTER RESPONSE:",
-        res.data
+        response.data
       );
 
-      toast.success(
-        "Registrazione completata"
-      );
-    } catch (err) {
+      toast.success("Registrazione completata");
+    } catch (err: any) {
       console.log(
         "REGISTER ERROR:",
-        err
+        err?.response?.data || err
       );
 
-      toast.error(
-        "Errore registrazione"
-      );
+      toast.error("Errore registrazione");
     }
   }
 
   async function login() {
     try {
-      const res = await axios.post(
+      const response = await axios.post(
         `${API}/auth/login`,
         {
           email,
@@ -104,27 +71,47 @@ export default function HomePage() {
 
       console.log(
         "LOGIN RESPONSE:",
-        res.data
+        response.data
       );
 
       localStorage.setItem(
         "token",
-        res.data.access_token
+        response.data.token
       );
 
       console.log(
         "TOKEN SALVATO:",
-        res.data.access_token
+        response.data.token
       );
 
       toast.success("Login effettuato");
-    } catch (err) {
+    } catch (err: any) {
       console.log(
         "LOGIN ERROR:",
-        err
+        err?.response?.data || err
       );
 
       toast.error("Errore login");
+    }
+  }
+
+  async function fetchEvents() {
+    try {
+      const response = await axios.get(
+        `${API}/events`
+      );
+
+      console.log(
+        "EVENTS:",
+        response.data
+      );
+
+      setEvents(response.data);
+    } catch (err: any) {
+      console.log(
+        "FETCH EVENTS ERROR:",
+        err?.response?.data || err
+      );
     }
   }
 
@@ -134,11 +121,16 @@ export default function HomePage() {
         localStorage.getItem("token");
 
       console.log(
-        "TOKEN USATO:",
+        "TOKEN RECUPERATO:",
         token
       );
 
-      await axios.post(
+      if (!token) {
+        toast.error("Token mancante");
+        return;
+      }
+
+      const response = await axios.post(
         `${API}/events`,
         {
           title,
@@ -150,8 +142,15 @@ export default function HomePage() {
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type":
+              "application/json",
           },
         }
+      );
+
+      console.log(
+        "EVENTO CREATO:",
+        response.data
       );
 
       toast.success("Evento creato");
@@ -160,12 +159,23 @@ export default function HomePage() {
       setDescription("");
       setLocation("");
       setImage("");
+      setSelectedDate("");
 
       fetchEvents();
-    } catch (err) {
+    } catch (err: any) {
       console.log(
-        "CREATE EVENT ERROR:",
+        "ERRORE COMPLETO:",
         err
+      );
+
+      console.log(
+        "RISPOSTA SERVER:",
+        err?.response?.data
+      );
+
+      console.log(
+        "STATUS:",
+        err?.response?.status
       );
 
       toast.error(
@@ -174,250 +184,154 @@ export default function HomePage() {
     }
   }
 
-  async function deleteEvent(id: number) {
-    try {
-      const token =
-        localStorage.getItem("token");
-
-      await axios.delete(
-        `${API}/events/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      toast.success("Evento eliminato");
-
-      fetchEvents();
-    } catch (err) {
-      console.log(err);
-
-      toast.error(
-        "Errore eliminazione"
-      );
-    }
-  }
-
-  async function buyTicket() {
-    try {
-      const res = await axios.post(
-        `${API}/stripe/create-checkout-session`
-      );
-
-      window.location.href =
-        res.data.url;
-    } catch (err) {
-      console.log(err);
-
-      toast.error("Errore pagamento");
-    }
-  }
+  useEffect(() => {
+    fetchEvents();
+  }, []);
 
   return (
     <main className="min-h-screen bg-black text-white p-8">
-      <Toaster />
+      <h1 className="text-7xl font-bold mb-4">
+        Event Platform
+      </h1>
 
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-7xl font-bold mb-3">
-          Event Platform
-        </h1>
+      <p className="text-2xl text-gray-400 mb-12">
+        Premium Event SaaS Dashboard
+      </p>
 
-        <p className="text-zinc-400 text-2xl mb-14">
-          Premium Event SaaS Dashboard
-        </p>
+      <div className="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 max-w-4xl mb-10">
+        <h2 className="text-5xl font-bold mb-8">
+          Login / Register
+        </h2>
 
-        <div className="grid lg:grid-cols-3 gap-10">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-            <h2 className="text-5xl font-bold mb-8">
-              Login / Register
-            </h2>
+        <div className="flex flex-col gap-4">
+          <input
+            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
+            placeholder="Email"
+            value={email}
+            onChange={(e) =>
+              setEmail(e.target.value)
+            }
+          />
 
-            <div className="flex flex-col gap-5">
-              <input
-                placeholder="Email"
-                className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5 text-xl"
-                value={email}
-                onChange={(e) =>
-                  setEmail(e.target.value)
-                }
-              />
+          <input
+            type="password"
+            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
+            placeholder="Password"
+            value={password}
+            onChange={(e) =>
+              setPassword(e.target.value)
+            }
+          />
 
-              <input
-                placeholder="Password"
-                type="password"
-                className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5 text-xl"
-                value={password}
-                onChange={(e) =>
-                  setPassword(
-                    e.target.value
-                  )
-                }
-              />
+          <button
+            onClick={register}
+            className="bg-blue-600 hover:bg-blue-700 rounded-2xl p-6 text-3xl font-bold"
+          >
+            Registrati
+          </button>
 
-              <button
-                onClick={register}
-                className="bg-blue-600 hover:bg-blue-700 transition-all rounded-2xl p-5 text-xl font-semibold flex items-center justify-center gap-3"
-              >
-                <UserPlus />
-                Registrati
-              </button>
-
-              <button
-                onClick={login}
-                className="bg-green-500 hover:bg-green-600 transition-all rounded-2xl p-5 text-xl font-semibold flex items-center justify-center gap-3"
-              >
-                <LogIn />
-                Login
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-            <h2 className="text-5xl font-bold mb-8">
-              Crea Evento
-            </h2>
-
-            <div className="flex flex-col gap-5">
-              <input
-                placeholder="Titolo"
-                className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5 text-xl"
-                value={title}
-                onChange={(e) =>
-                  setTitle(e.target.value)
-                }
-              />
-
-              <textarea
-                placeholder="Descrizione"
-                className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5 text-xl"
-                value={description}
-                onChange={(e) =>
-                  setDescription(
-                    e.target.value
-                  )
-                }
-              />
-
-              <input
-                placeholder="Location"
-                className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5 text-xl"
-                value={location}
-                onChange={(e) =>
-                  setLocation(
-                    e.target.value
-                  )
-                }
-              />
-
-              <input
-                placeholder="Image URL"
-                className="bg-zinc-800 border border-zinc-700 rounded-2xl p-5 text-xl"
-                value={image}
-                onChange={(e) =>
-                  setImage(e.target.value)
-                }
-              />
-
-              <button
-                onClick={createEvent}
-                className="bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:scale-[1.02] transition-all rounded-2xl p-5 text-xl font-semibold flex items-center justify-center gap-3"
-              >
-                <Plus />
-                Crea Evento
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-            <h2 className="text-5xl font-bold mb-8 flex items-center gap-3">
-              <CalendarDays />
-              Calendario
-            </h2>
-
-            <div className="bg-zinc-950 rounded-3xl p-5 overflow-hidden">
-              <Calendar
-                onChange={(value: any) =>
-                  setSelectedDate(value)
-                }
-                value={selectedDate}
-              />
-            </div>
-          </div>
+          <button
+            onClick={login}
+            className="bg-green-500 hover:bg-green-600 rounded-2xl p-6 text-3xl font-bold"
+          >
+            Login
+          </button>
         </div>
+      </div>
 
-        <div className="mt-20">
-          <h2 className="text-6xl font-bold mb-10">
-            Eventi
-          </h2>
+      <div className="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 max-w-4xl mb-10">
+        <h2 className="text-5xl font-bold mb-8">
+          Crea Evento
+        </h2>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {events.map((event) => (
-              <div
-                key={event.id}
-                className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6"
-              >
-                <img
-                  src={
-                    event.image
-                      ? event.image
-                      : "https://images.unsplash.com/photo-1492684223066-81342ee5ff30"
-                  }
-                  alt={event.title}
-                  className="w-full h-56 object-cover rounded-2xl mb-5"
-                />
+        <div className="flex flex-col gap-4">
+          <input
+            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
+            placeholder="Titolo"
+            value={title}
+            onChange={(e) =>
+              setTitle(e.target.value)
+            }
+          />
 
-                <div className="flex justify-between items-start">
-                  <h3 className="text-4xl font-bold">
-                    {event.title}
-                  </h3>
+          <textarea
+            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
+            placeholder="Descrizione"
+            value={description}
+            onChange={(e) =>
+              setDescription(e.target.value)
+            }
+          />
 
-                  <button
-                    onClick={() =>
-                      deleteEvent(event.id)
-                    }
-                    className="bg-red-500 hover:bg-red-600 transition-all p-3 rounded-xl"
-                  >
-                    <Trash2 />
-                  </button>
-                </div>
+          <input
+            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
+            placeholder="Location"
+            value={location}
+            onChange={(e) =>
+              setLocation(e.target.value)
+            }
+          />
 
-                <p className="text-zinc-400 text-xl mt-5">
-                  {event.description}
-                </p>
+          <input
+            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
+            placeholder="Image URL"
+            value={image}
+            onChange={(e) =>
+              setImage(e.target.value)
+            }
+          />
 
-                <div className="flex items-center gap-2 mt-6 text-zinc-300 text-xl">
-                  <MapPin size={20} />
-                  {event.location}
-                </div>
+          <input
+            type="date"
+            className="bg-zinc-800 border border-zinc-700 rounded-2xl p-6 text-3xl"
+            value={selectedDate}
+            onChange={(e) =>
+              setSelectedDate(
+                e.target.value
+              )
+            }
+          />
 
-                <div className="flex items-center gap-2 mt-4 text-zinc-400">
-                  <CalendarDays size={20} />
-                  {new Date(
-                    event.date
-                  ).toLocaleDateString()}
-                </div>
-
-                <div className="mt-6 flex flex-col gap-4">
-                  <button
-                    onClick={buyTicket}
-                    className="bg-green-500 hover:bg-green-600 transition-all px-5 py-3 rounded-2xl text-xl font-semibold"
-                  >
-                    Compra Biglietto €19.99
-                  </button>
-
-                  <div className="bg-white p-3 rounded-2xl w-fit">
-                    <QRCode
-                      value={`https://event-platform-six-fawn.vercel.app/event/${event.id}`}
-                      size={100}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <button
+            onClick={createEvent}
+            className="bg-purple-600 hover:bg-purple-700 rounded-2xl p-6 text-3xl font-bold"
+          >
+            Crea Evento
+          </button>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        {events.map((event) => (
+          <div
+            key={event.id}
+            className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6"
+          >
+            <h3 className="text-4xl font-bold mb-4">
+              {event.title}
+            </h3>
+
+            <p className="text-2xl text-gray-300 mb-4">
+              {event.description}
+            </p>
+
+            <p className="text-xl text-gray-400">
+              {event.location}
+            </p>
+
+            <p className="text-xl text-gray-500">
+              {event.date}
+            </p>
+
+            {event.image && (
+              <img
+                src={event.image}
+                alt={event.title}
+                className="mt-4 rounded-2xl"
+              />
+            )}
+          </div>
+        ))}
       </div>
     </main>
   );
