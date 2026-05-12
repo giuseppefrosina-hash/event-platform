@@ -64,7 +64,7 @@ export default function HomePage() {
 
   async function register() {
     try {
-      await axios.post(
+      const res = await axios.post(
         `${API}/auth/register`,
         {
           email,
@@ -72,11 +72,23 @@ export default function HomePage() {
         }
       );
 
+      console.log(
+        "REGISTER RESPONSE:",
+        res.data
+      );
+
       toast.success(
         "Registrazione completata"
       );
     } catch (err) {
-      toast.error("Errore registrazione");
+      console.log(
+        "REGISTER ERROR:",
+        err
+      );
+
+      toast.error(
+        "Errore registrazione"
+      );
     }
   }
 
@@ -90,13 +102,28 @@ export default function HomePage() {
         }
       );
 
+      console.log(
+        "LOGIN RESPONSE:",
+        res.data
+      );
+
       localStorage.setItem(
         "token",
         res.data.access_token
       );
 
+      console.log(
+        "TOKEN SALVATO:",
+        res.data.access_token
+      );
+
       toast.success("Login effettuato");
     } catch (err) {
+      console.log(
+        "LOGIN ERROR:",
+        err
+      );
+
       toast.error("Errore login");
     }
   }
@@ -105,6 +132,11 @@ export default function HomePage() {
     try {
       const token =
         localStorage.getItem("token");
+
+      console.log(
+        "TOKEN USATO:",
+        token
+      );
 
       await axios.post(
         `${API}/events`,
@@ -131,7 +163,10 @@ export default function HomePage() {
 
       fetchEvents();
     } catch (err) {
-      console.log(err);
+      console.log(
+        "CREATE EVENT ERROR:",
+        err
+      );
 
       toast.error(
         "Errore creazione evento"
@@ -157,6 +192,8 @@ export default function HomePage() {
 
       fetchEvents();
     } catch (err) {
+      console.log(err);
+
       toast.error(
         "Errore eliminazione"
       );
@@ -172,6 +209,8 @@ export default function HomePage() {
       window.location.href =
         res.data.url;
     } catch (err) {
+      console.log(err);
+
       toast.error("Errore pagamento");
     }
   }
