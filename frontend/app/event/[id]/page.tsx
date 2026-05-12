@@ -81,3 +81,38 @@ export default function EventPage({
     </main>
   );
 }
+async function login() {
+  try {
+    const res = await axios.post(
+      `${API}/auth/login`,
+      {
+        email,
+        password,
+      }
+    );
+
+    console.log(
+      "LOGIN RESPONSE:",
+      res.data
+    );
+
+    localStorage.setItem(
+      "token",
+      res.data.access_token
+    );
+
+    toast.success("Login effettuato");
+
+    console.log(
+      "TOKEN:",
+      localStorage.getItem("token")
+    );
+  } catch (err) {
+    console.log(
+      "LOGIN ERROR:",
+      err
+    );
+
+    toast.error("Errore login");
+  }
+}
