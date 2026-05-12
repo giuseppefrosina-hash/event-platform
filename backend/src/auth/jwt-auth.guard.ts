@@ -1,7 +1,7 @@
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
+  Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 
@@ -14,37 +14,33 @@ export class JwtAuthGuard
   canActivate(
     context: ExecutionContext,
   ): boolean {
+    const request =
+      context.switchToHttp().getRequest();
+
+    const authHeader =
+      request.headers.authorization;
+
+    console.log(
+      'AUTH HEADER:',
+      authHeader,
+    );
+
+    if (!authHeader) {
+      throw new UnauthorizedException(
+        'No token',
+      );
+    }
+
+    const token =
+      authHeader.split(' ')[1];
+
+    console.log('TOKEN:', token);
+
     try {
-      const request =
-        context
-          .switchToHttp()
-          .getRequest();
-
-      const authHeader =
-        request.headers.authorization;
-
-      console.log(
-        'AUTH HEADER:',
-        authHeader,
-      );
-
-      if (!authHeader) {
-        throw new UnauthorizedException(
-          'Token mancante',
-        );
-      }
-
-      const token =
-        authHeader.split(' ')[1];
-
-      console.log(
-        'TOKEN:',
-        token,
-      );
-
       const decoded = jwt.verify(
         token,
-        process.env.JWT_SECRET as string,
+        process.env.JWT_SECRET ||
+          'secret',
       );
 
       console.log(
@@ -62,7 +58,7 @@ export class JwtAuthGuard
       );
 
       throw new UnauthorizedException(
-        'Token non valido',
+        'Invalid token',
       );
     }
   }
