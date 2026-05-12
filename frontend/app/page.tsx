@@ -25,6 +25,27 @@ export default function Home() {
   }, []);
 
   async function fetchEvents() {
+  try {
+    const res = await fetch(`${API_URL}/events`);
+
+    const data = await res.json();
+
+    console.log("EVENTS RESPONSE:", data);
+
+    if (Array.isArray(data)) {
+      setEvents(data);
+    } else if (Array.isArray(data.events)) {
+      setEvents(data.events);
+    } else if (Array.isArray(data.data)) {
+      setEvents(data.data);
+    } else {
+      setEvents([]);
+    }
+  } catch (err) {
+    console.error(err);
+    setEvents([]);
+  }
+}
     try {
       const res = await fetch(`${API_URL}/events`);
       const data = await res.json();
