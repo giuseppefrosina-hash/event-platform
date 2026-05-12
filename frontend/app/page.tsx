@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-const API_URL = "https://event-platform-vr94.onrender.com";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://event-platform-vr94.onrender.com";
 
 export default function Home() {
   const [events, setEvents] = useState<any[]>([]);
@@ -16,16 +18,8 @@ export default function Home() {
   const [date, setDate] = useState("");
   const [price, setPrice] = useState("");
 
-  const [token, setToken] = useState("");
-
   useEffect(() => {
     fetchEvents();
-
-    const saved = localStorage.getItem("token");
-
-    if (saved) {
-      setToken(saved);
-    }
   }, []);
 
   async function fetchEvents() {
@@ -33,68 +27,77 @@ export default function Home() {
       const res = await fetch(`${API_URL}/events`);
       const data = await res.json();
 
-      setEvents(data);
+      if (Array.isArray(data)) {
+        setEvents(data);
+      } else {
+        setEvents([]);
+      }
     } catch (err) {
-      console.log(err);
+      console.error(err);
+      setEvents([]);
     }
   }
 
   async function register() {
-    await fetch(`${API_URL}/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    });
+    try {
+      await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-    alert("Registered");
+      alert("Registered");
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async function login() {
-    const res = await fetch(`${API_URL}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    });
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    localStorage.setItem("token", data.access_token);
+      localStorage.setItem("token", data.access_token);
 
-    setToken(data.access_token);
-
-    alert("Logged in");
+      alert("Logged in");
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async function createEvent() {
-    const res = await fetch(`${API_URL}/events`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        title,
-        description,
-        location,
-        date,
-        price: Number(price),
-        image:
-          "https://images.unsplash.com/photo-1492684223066-81342ee5ff30",
-      }),
-    });
+    try {
+      const token = localStorage.getItem("token");
 
-    if (res.ok) {
-      fetchEvents();
+      await fetch(`${API_URL}/events`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          location,
+          date,
+          price: Number(price),
+        }),
+      });
 
       setTitle("");
       setDescription("");
@@ -102,56 +105,94 @@ export default function Home() {
       setDate("");
       setPrice("");
 
+      fetchEvents();
+
       alert("Event created");
-    } else {
-      alert("Error creating event");
+    } catch (err) {
+      console.error(err);
     }
   }
 
-  async function deleteEvent(id: number) {
-    await fetch(`${API_URL}/events/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    fetchEvents();
-  }
-
   return (
-    <main className="min-h-screen bg-black text-white p-10">
-      <h1 className="text-6xl font-bold mb-12">Event Platform</h1>
+    <main className="min-h-screen bg-[#f5f5f7] text-black">
+      {/* NAVBAR */}
+      <nav className="w-full border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Event Platform
+          </h1>
 
-      <div className="grid md:grid-cols-2 gap-10">
-        <div className="bg-zinc-900 p-6 rounded-3xl">
-          <h2 className="text-2xl font-bold mb-6">Authentication</h2>
+          <button className="bg-black text-white px-5 py-2 rounded-full text-sm hover:opacity-80 transition">
+            Explore Events
+          </button>
+        </div>
+      </nav>
 
-          <div className="flex flex-col gap-4">
+      {/* HERO */}
+      <section className="max-w-7xl mx-auto px-6 pt-24 pb-20">
+        <div className="max-w-3xl">
+          <p className="text-sm uppercase tracking-[0.3em] text-gray-500 mb-5">
+            Discover Experiences
+          </p>
+
+          <h1 className="text-6xl md:text-7xl font-semibold leading-tight tracking-tight">
+            Find and create
+            <br />
+            unforgettable events.
+          </h1>
+
+          <p className="text-gray-500 text-xl mt-8 leading-relaxed">
+            Minimal, elegant and modern event management platform designed for
+            creators, communities and experiences.
+          </p>
+
+          <div className="flex gap-4 mt-10">
+            <button className="bg-black text-white px-7 py-4 rounded-full text-sm font-medium hover:scale-105 transition">
+              Get Started
+            </button>
+
+            <button className="bg-white border border-gray-300 px-7 py-4 rounded-full text-sm font-medium hover:bg-gray-100 transition">
+              Browse Events
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* FORMS */}
+      <section className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* AUTH */}
+        <div className="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100">
+          <h2 className="text-3xl font-semibold mb-8 tracking-tight">
+            Authentication
+          </h2>
+
+          <div className="space-y-4">
             <input
-              className="bg-zinc-800 p-4 rounded-xl"
               placeholder="Email"
+              className="w-full h-14 rounded-2xl border border-gray-200 px-5 outline-none focus:ring-2 focus:ring-black/10"
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
 
             <input
               type="password"
-              className="bg-zinc-800 p-4 rounded-xl"
               placeholder="Password"
+              className="w-full h-14 rounded-2xl border border-gray-200 px-5 outline-none focus:ring-2 focus:ring-black/10"
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
 
-            <div className="flex gap-4">
+            <div className="flex gap-4 pt-3">
               <button
                 onClick={register}
-                className="bg-white text-black px-6 py-3 rounded-2xl font-bold"
+                className="bg-black text-white px-6 py-3 rounded-full hover:opacity-80 transition"
               >
                 Register
               </button>
 
               <button
                 onClick={login}
-                className="bg-blue-600 px-6 py-3 rounded-2xl font-bold"
+                className="bg-gray-100 px-6 py-3 rounded-full hover:bg-gray-200 transition"
               >
                 Login
               </button>
@@ -159,108 +200,130 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="bg-zinc-900 p-6 rounded-3xl">
-          <h2 className="text-2xl font-bold mb-6">Create Event</h2>
+        {/* CREATE EVENT */}
+        <div className="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100">
+          <h2 className="text-3xl font-semibold mb-8 tracking-tight">
+            Create Event
+          </h2>
 
-          <div className="flex flex-col gap-4">
+          <div className="space-y-4">
             <input
-              className="bg-zinc-800 p-4 rounded-xl"
               placeholder="Title"
+              className="w-full h-14 rounded-2xl border border-gray-200 px-5 outline-none focus:ring-2 focus:ring-black/10"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
 
             <input
-              className="bg-zinc-800 p-4 rounded-xl"
               placeholder="Description"
+              className="w-full h-14 rounded-2xl border border-gray-200 px-5 outline-none focus:ring-2 focus:ring-black/10"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
 
             <input
-              className="bg-zinc-800 p-4 rounded-xl"
               placeholder="Location"
+              className="w-full h-14 rounded-2xl border border-gray-200 px-5 outline-none focus:ring-2 focus:ring-black/10"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
 
             <input
               type="datetime-local"
-              className="bg-zinc-800 p-4 rounded-xl"
+              className="w-full h-14 rounded-2xl border border-gray-200 px-5 outline-none focus:ring-2 focus:ring-black/10"
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />
 
             <input
               type="number"
-              className="bg-zinc-800 p-4 rounded-xl"
               placeholder="Price"
+              className="w-full h-14 rounded-2xl border border-gray-200 px-5 outline-none focus:ring-2 focus:ring-black/10"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
             />
 
             <button
               onClick={createEvent}
-              className="bg-green-500 text-black px-6 py-3 rounded-2xl font-bold"
+              className="w-full h-14 rounded-2xl bg-black text-white font-medium hover:opacity-80 transition mt-4"
             >
               Create Event
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <h2 className="text-4xl font-bold mt-16 mb-8">Events</h2>
+      {/* EVENTS */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <div className="flex items-center justify-between mb-10">
+          <h2 className="text-5xl font-semibold tracking-tight">
+            Upcoming Events
+          </h2>
 
-      <div className="grid md:grid-cols-3 gap-8">
-        {events.map((event) => (
-          <div
-            key={event.id}
-            className="bg-zinc-900 rounded-3xl overflow-hidden"
-          >
-            <img
-              src={event.image}
-              alt={event.title}
-              className="w-full h-60 object-cover"
-            />
+          <button className="text-sm text-gray-500 hover:text-black transition">
+            View all →
+          </button>
+        </div>
 
-            <div className="p-5">
-              <h3 className="text-2xl font-bold">{event.title}</h3>
+        {events.length === 0 ? (
+          <div className="bg-white rounded-[32px] p-16 text-center border border-gray-100">
+            <h3 className="text-2xl font-semibold mb-3">
+              No events available
+            </h3>
 
-              <p className="text-zinc-400 mt-2">{event.description}</p>
+            <p className="text-gray-500">
+              Create your first event to get started.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {events.map((event) => (
+              <div
+                key={event.id}
+                className="bg-white rounded-[32px] p-7 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300"
+              >
+                <div className="flex items-center justify-between mb-8">
+                  <div className="bg-black text-white text-xs px-4 py-2 rounded-full">
+                    EVENT
+                  </div>
 
-              <p className="mt-3">📍 {event.location}</p>
+                  <div className="text-sm text-gray-400">
+                    €{event.price || 0}
+                  </div>
+                </div>
 
-              <p className="mt-2">
-                📅{" "}
-                {event.date
-                  ? new Date(event.date).toLocaleString()
-                  : "No date"}
-              </p>
+                <h3 className="text-3xl font-semibold tracking-tight mb-4">
+                  {event.title}
+                </h3>
 
-              <p className="mt-2 text-green-400 font-bold">
-                € {event.price || 0}
-              </p>
+                <p className="text-gray-500 leading-relaxed mb-8">
+                  {event.description}
+                </p>
 
-              <div className="flex gap-3 mt-5">
-                <button className="bg-blue-600 px-4 py-2 rounded-xl">
-                  Buy Ticket
-                </button>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Location</span>
+                    <span>{event.location}</span>
+                  </div>
 
-                <button className="bg-red-600 px-4 py-2 rounded-xl">
-                  Edit
-                </button>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Date</span>
+                    <span>
+                      {event.date
+                        ? new Date(event.date).toLocaleDateString()
+                        : "N/A"}
+                    </span>
+                  </div>
+                </div>
 
-                <button
-                  onClick={() => deleteEvent(event.id)}
-                  className="bg-zinc-700 px-4 py-2 rounded-xl"
-                >
-                  Delete
+                <button className="w-full mt-8 h-12 rounded-2xl bg-gray-100 hover:bg-black hover:text-white transition">
+                  View Event
                 </button>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
+      </section>
     </main>
   );
 }
