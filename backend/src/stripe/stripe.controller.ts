@@ -10,7 +10,10 @@ export class StripeController {
   @Post('create-checkout-session')
   async createCheckoutSession() {
     const url =
-      await this.stripeService.createCheckoutSession();
+      await this.stripeService.createCheckoutSession(
+        'Test Event',
+        100,
+      );
 
     return {
       url,
