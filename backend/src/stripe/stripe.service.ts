@@ -3,12 +3,10 @@ import Stripe from 'stripe';
 
 @Injectable()
 export class StripeService {
-  private stripe: Stripe;
+  private stripe: any;
 
   constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2024-06-20',
-    });
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
   }
 
   async createCheckoutSession(
