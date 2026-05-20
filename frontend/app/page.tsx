@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://event-platform-vr94.onrender.com";
+const API_URL = "http://localhost:3000";
+
 
 export default function Home() {
   const [events, setEvents] = useState<any[]>([]);
