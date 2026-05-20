@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 
 const API_URL = "http://localhost:3000";
 
-
 export default function Home() {
   const [events, setEvents] = useState<any[]>([]);
 
@@ -39,8 +38,6 @@ export default function Home() {
       const res = await fetch(`${API_URL}/events`);
 
       const data = await res.json();
-
-      console.log("EVENTS RESPONSE:", data);
 
       if (Array.isArray(data)) {
         setEvents(data);
@@ -94,13 +91,16 @@ export default function Home() {
 
       const data = await res.json();
 
-      console.log("LOGIN RESPONSE:", data);
+      const jwtToken = data.access_token || data.token;
 
-      if (data.access_token) {
-        setToken(data.access_token);
-        localStorage.setItem("token", data.access_token);
+      if (jwtToken) {
+        setToken(jwtToken);
+
+        localStorage.setItem("token", jwtToken);
 
         setMessage("Login successful");
+
+        window.location.href = "/companies";
       } else {
         setMessage("Login failed");
       }
@@ -129,9 +129,7 @@ export default function Home() {
         }),
       });
 
-      const data = await res.json();
-
-      console.log("CREATE EVENT RESPONSE:", data);
+      await res.json();
 
       setMessage("Event created");
 
@@ -170,7 +168,6 @@ export default function Home() {
             borderRadius: "18px",
             fontSize: "16px",
             zIndex: 999,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
           }}
         >
           {message}
@@ -375,21 +372,11 @@ export default function Home() {
                 {event.description || "No description"}
               </p>
 
-              <p
-                style={{
-                  marginBottom: "8px",
-                  color: "#333",
-                }}
-              >
+              <p style={{ marginBottom: "8px" }}>
                 📍 {event.location || "Unknown location"}
               </p>
 
-              <p
-                style={{
-                  marginBottom: "8px",
-                  color: "#333",
-                }}
-              >
+              <p style={{ marginBottom: "8px" }}>
                 📅 {event.date || "No date"}
               </p>
 
