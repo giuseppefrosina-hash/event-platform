@@ -12,15 +12,147 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+
+  companies Company[]
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  vatNumber String?
+  email     String?
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+
+  events Event[]
+}
+
+
+model Supplier {
+  id          String   @id @default(cuid())
+  companyName String
+  email       String?
+  phone       String?
+  vatNumber   String?
+  fiscalCode  String?
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model Collaborator {
+  id String @id @default(cuid())
+
+  firstName String
+  lastName  String
+
+  email String?
+  phone String?
+
+  fiscalCode String?
+  vatNumber  String?
+
+  iban String?
+
+  address String?
+
+  role String?
+
+  hourlyRate Float?
+
+  reimbursement Boolean @default(false)
+
+  notes String?
+
+  createdAt DateTime @default(now())
+}
+
+model Staff {
+  id         String   @id @default(cuid())
+  firstName  String
+  lastName   String
+  email      String?
+  phone      String?
+  fiscalCode String?
+  iban       String?
+  role       String?
+  createdAt  DateTime @default(now())
 }
 
 model Event {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   title       String
+  description String?
+
+  image String?
+
+  date     DateTime
+  location String?
+  price    Float?
+
+  createdAt DateTime @default(now())
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  costs   EventCost[]
+  quotes  Quote[]
+  travels Travel[]
+}
+
+model EventCost {
+  id      String @id @default(cuid())
+  eventId String
+
+  category    String
   description String
-  location    String
-  image       String
-  date        DateTime
-  price       Float    @default(0)
-  createdAt   DateTime @default(now())
+
+  supplier String?
+
+  quantity  Float
+  unitCost  Float
+  vat       Float
+  totalCost Float
+
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id])
+}
+
+model Quote {
+  id      String @id @default(cuid())
+  eventId String
+
+  quoteNumber String
+  clientName  String
+
+  totalAmount Float
+  vatAmount   Float
+
+  status String
+
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id])
+}
+
+model Travel {
+  id      String @id @default(cuid())
+  eventId String
+
+  travelerName String
+
+  transportType String
+
+  departureCity String?
+  arrivalCity   String?
+
+  cost Float
+
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id])
 }

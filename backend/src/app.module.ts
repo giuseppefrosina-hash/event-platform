@@ -1,18 +1,27 @@
 import { Module } from '@nestjs/common';
 
-import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { EventsModule } from './events/events.module';
-import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { PrismaModule } from './prisma/prisma.module';
 import { StripeModule } from './stripe/stripe.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+
+import { CompaniesModule } from './companies/companies.module';
+import { SuppliersModule } from './suppliers/suppliers.module';
+import { CollaboratorsModule } from './collaborators/collaborators.module';
+import { StaffModule } from './staff/staff.module';
 
 @Module({
   imports: [
     PrismaModule,
     AuthModule,
     EventsModule,
-    CloudinaryModule,
     StripeModule,
+    CloudinaryModule,
+    CompaniesModule,
+    SuppliersModule,
+    CollaboratorsModule,
+    StaffModule,
   ],
 })
 export class AppModule {}
