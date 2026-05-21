@@ -34,13 +34,13 @@ export default function TicketsPage() {
   }, []);
 
   async function loadEvents() {
-    const res = await fetch(`${API_URL}/events`);
+    const res = await fetch(API_URL + '/events');
     const data = await res.json();
     setEvents(Array.isArray(data) ? data : []);
   }
 
   async function loadTickets() {
-    const res = await fetch(`${API_URL}/tickets`);
+    const res = await fetch(API_URL + '/tickets');
     const data = await res.json();
     setTickets(Array.isArray(data) ? data : []);
   }
@@ -51,7 +51,7 @@ export default function TicketsPage() {
       return;
     }
 
-    const res = await fetch(`${API_URL}/tickets`, {
+    const res = await fetch(API_URL + '/tickets', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export default function TicketsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0b0f] text-white">
+    <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-10 flex items-center justify-between">
           <div>
@@ -90,20 +90,20 @@ export default function TicketsPage() {
 
           <a
             href="/dashboard"
-            className="rounded-2xl bg-white px-5 py-3 font-semibold text-black"
+            className="rounded-2xl bg-black px-5 py-3 font-semibold text-white"
           >
             Dashboard
           </a>
         </div>
 
         {message && (
-          <div className="mb-8 rounded-2xl border border-white/10 bg-white/[0.06] p-5">
+          <div className="mb-8 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
             {message}
           </div>
         )}
 
         <div className="grid gap-8 lg:grid-cols-[420px_1fr]">
-          <section className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-8">
+          <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 shadow-sm">
             <h2 className="mb-6 text-2xl font-bold">
               Crea ticket
             </h2>
@@ -112,7 +112,7 @@ export default function TicketsPage() {
               <select
                 value={eventId}
                 onChange={(e) => setEventId(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 outline-none"
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               >
                 <option value="">
                   Seleziona evento
@@ -129,19 +129,19 @@ export default function TicketsPage() {
                 placeholder="Nome partecipante"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 outline-none"
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
               <input
                 placeholder="Email partecipante"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 outline-none"
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
               <button
                 onClick={createTicket}
-                className="w-full rounded-2xl bg-white px-6 py-4 font-semibold text-black"
+                className="w-full rounded-2xl bg-black px-6 py-4 font-semibold text-white"
               >
                 Genera ticket
               </button>
@@ -156,7 +156,7 @@ export default function TicketsPage() {
 
               <button
                 onClick={loadTickets}
-                className="rounded-2xl bg-white px-5 py-3 text-black"
+                className="rounded-2xl bg-black px-5 py-3 text-white"
               >
                 Refresh
               </button>
@@ -164,16 +164,16 @@ export default function TicketsPage() {
 
             <div className="grid gap-5">
               {tickets.length === 0 ? (
-                <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-10 text-center text-zinc-500">
+                <div className="rounded-[2rem] border border-zinc-200 bg-white p-10 text-center text-zinc-500 shadow-sm">
                   Nessun ticket creato.
                 </div>
               ) : (
                 tickets.map((ticket) => (
                   <article
                     key={ticket.id}
-                    className="grid gap-6 rounded-[2rem] border border-white/10 bg-white/[0.06] p-7 md:grid-cols-[160px_1fr]"
+                    className="grid gap-6 rounded-[2rem] border border-zinc-200 bg-white p-7 shadow-sm md:grid-cols-[160px_1fr]"
                   >
-                    <div className="rounded-2xl bg-white p-4">
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
                       <QRCode
                         value={ticket.qrCode}
                         size={128}
@@ -185,20 +185,23 @@ export default function TicketsPage() {
                         {ticket.fullName}
                       </h3>
 
-                      <div className="mt-4 grid gap-2 text-zinc-400">
+                      <div className="mt-4 grid gap-2 text-zinc-600">
                         <p>📧 {ticket.email}</p>
+
                         <p>
                           🎟️ Evento:{' '}
                           {ticket.event?.title ||
                             'Evento non disponibile'}
                         </p>
+
                         <p>
                           Stato:{' '}
                           {ticket.checkedIn
                             ? '✅ Check-in effettuato'
                             : '🟡 Da validare'}
                         </p>
-                        <p className="break-all text-xs">
+
+                        <p className="break-all text-xs text-zinc-400">
                           QR: {ticket.qrCode}
                         </p>
                       </div>
