@@ -23,6 +23,7 @@ type Ticket = {
 export default function TicketsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
+
   const [eventId, setEventId] = useState('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -45,100 +46,134 @@ export default function TicketsPage() {
     setTickets(Array.isArray(data) ? data : []);
   }
 
-async function downloadTicketPdf(ticket: Ticket) {
-  const doc = new jsPDF();
+  async function createTicket() {
+    if (!eventId || !fullName || !email) {
+      setMessage('Compila tutti i campi');
+      return;
+    }
 
-  const qrCanvas = document.getElementById(
-    `qr-${ticket.id}`,
-  ) as HTMLDivElement;
+    const res = await fetch(API_URL + '/tickets', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        eventId,
+        fullName,
+        email,
+      }),
+    });
 
-  const qrSvg =
-    qrCanvas?.querySelector('svg');
+    if (!res.ok) {
+      setMessage('Errore creazione ticket');
+      return;
+    }
 
-  let qrImage = '';
+    setEventId('');
+    setFullName('');
+    setEmail('');
 
-  if (qrSvg) {
-    const svgData = new XMLSerializer().serializeToString(
-      qrSvg,
-    );
+    setMessage('Ticket creato con successo');
 
-    qrImage =
-      'data:image/svg+xml;base64,' +
-      btoa(svgData);
+    loadTickets();
   }
 
-  doc.setFillColor(15, 15, 15);
-  doc.rect(0, 0, 210, 45, 'F');
+  async function downloadTicketPdf(ticket: Ticket) {
+    const doc = new jsPDF();
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(28);
-  doc.text('Uniquo', 20, 28);
+    const qrCanvas = document.getElementById(
+      `qr-${ticket.id}`,
+    ) as HTMLDivElement;
 
-  doc.setFontSize(14);
-  doc.text('Premium Event Ticket', 20, 38);
+    const qrSvg =
+      qrCanvas?.querySelector('svg');
 
-  doc.setTextColor(20, 20, 20);
+    let qrImage = '';
 
-  doc.setFontSize(22);
-  doc.text(ticket.fullName, 20, 70);
+    if (qrSvg) {
+      const svgData =
+        new XMLSerializer().serializeToString(
+          qrSvg,
+        );
 
-  doc.setFontSize(13);
+      qrImage =
+        'data:image/svg+xml;base64,' +
+        btoa(svgData);
+    }
 
-  doc.text(
-    'Evento: ' +
-      (ticket.event?.title ||
-        'Evento'),
-    20,
-    90,
-  );
+    doc.setFillColor(15, 15, 15);
+    doc.rect(0, 0, 210, 45, 'F');
 
-  doc.text(
-    'Email: ' + ticket.email,
-    20,
-    105,
-  );
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(28);
+    doc.text('Uniquo', 20, 28);
 
-  doc.text(
-    'Status: ' +
-      (ticket.checkedIn
-        ? 'Check-in effettuato'
-        : 'Da validare'),
-    20,
-    120,
-  );
+    doc.setFontSize(14);
+    doc.text('Premium Event Ticket', 20, 38);
 
-  if (qrImage) {
-    doc.addImage(
-      qrImage,
-      'SVG',
-      140,
-      70,
-      45,
-      45,
+    doc.setTextColor(20, 20, 20);
+
+    doc.setFontSize(22);
+    doc.text(ticket.fullName, 20, 70);
+
+    doc.setFontSize(13);
+
+    doc.text(
+      'Evento: ' +
+        (ticket.event?.title ||
+          'Evento'),
+      20,
+      90,
+    );
+
+    doc.text(
+      'Email: ' + ticket.email,
+      20,
+      105,
+    );
+
+    doc.text(
+      'Status: ' +
+        (ticket.checkedIn
+          ? 'Check-in effettuato'
+          : 'Da validare'),
+      20,
+      120,
+    );
+
+    if (qrImage) {
+      doc.addImage(
+        qrImage,
+        'SVG',
+        140,
+        70,
+        45,
+        45,
+      );
+    }
+
+    doc.setDrawColor(220, 220, 220);
+
+    doc.line(20, 145, 190, 145);
+
+    doc.setFontSize(11);
+
+    doc.text(
+      'Presenta questo ticket all’ingresso.',
+      20,
+      165,
+    );
+
+    doc.text(
+      'Powered by Uniquo',
+      20,
+      280,
+    );
+
+    doc.save(
+      `ticket-${ticket.fullName}.pdf`,
     );
   }
-
-  doc.setDrawColor(220, 220, 220);
-  doc.line(20, 145, 190, 145);
-
-  doc.setFontSize(11);
-
-  doc.text(
-    'Presenta questo ticket all’ingresso.',
-    20,
-    165,
-  );
-
-  doc.text(
-    'Powered by Uniquo',
-    20,
-    280,
-  );
-
-  doc.save(
-    `ticket-${ticket.fullName}.pdf`,
-  );
-}
 
   return (
     <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
@@ -148,6 +183,7 @@ async function downloadTicketPdf(ticket: Ticket) {
             <p className="mb-2 text-sm uppercase tracking-[0.3em] text-zinc-500">
               Ticketing
             </p>
+
             <h1 className="text-5xl font-bold">
               Biglietti evento
             </h1>
@@ -176,13 +212,20 @@ async function downloadTicketPdf(ticket: Ticket) {
             <div className="space-y-4">
               <select
                 value={eventId}
-                onChange={(e) => setEventId(e.target.value)}
+                onChange={(e) =>
+                  setEventId(e.target.value)
+                }
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               >
-                <option value="">Seleziona evento</option>
+                <option value="">
+                  Seleziona evento
+                </option>
 
                 {events.map((event) => (
-                  <option key={event.id} value={event.id}>
+                  <option
+                    key={event.id}
+                    value={event.id}
+                  >
                     {event.title}
                   </option>
                 ))}
@@ -191,14 +234,18 @@ async function downloadTicketPdf(ticket: Ticket) {
               <input
                 placeholder="Nome partecipante"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) =>
+                  setFullName(e.target.value)
+                }
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
               <input
                 placeholder="Email partecipante"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
@@ -237,12 +284,12 @@ async function downloadTicketPdf(ticket: Ticket) {
                     className="grid gap-6 rounded-[2rem] border border-zinc-200 bg-white p-7 shadow-sm md:grid-cols-[160px_1fr]"
                   >
                     <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
-                     <div id={`qr-${ticket.id}`}>
-  <QRCode
-    value={ticket.qrCode}
-    size={128}
-  />
-</div>
+                      <div id={`qr-${ticket.id}`}>
+                        <QRCode
+                          value={ticket.qrCode}
+                          size={128}
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -251,25 +298,34 @@ async function downloadTicketPdf(ticket: Ticket) {
                       </h3>
 
                       <div className="mt-4 grid gap-2 text-zinc-600">
-                        <p>📧 {ticket.email}</p>
+                        <p>
+                          📧 {ticket.email}
+                        </p>
+
                         <p>
                           🎟️ Evento:{' '}
                           {ticket.event?.title ||
                             'Evento non disponibile'}
                         </p>
+
                         <p>
                           Stato:{' '}
                           {ticket.checkedIn
                             ? '✅ Check-in effettuato'
                             : '🟡 Da validare'}
                         </p>
+
                         <p className="break-all text-xs text-zinc-400">
                           QR: {ticket.qrCode}
                         </p>
                       </div>
 
                       <button
-                        onClick={() => downloadTicketPdf(ticket)}
+                        onClick={() =>
+                          downloadTicketPdf(
+                            ticket,
+                          )
+                        }
                         className="mt-5 rounded-2xl bg-black px-5 py-3 font-semibold text-white"
                       >
                         Scarica PDF
