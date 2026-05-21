@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class TicketsService {
   constructor(
     private prisma: PrismaService,
+    private mailService: MailService,
   ) {}
 
   async findAll() {
@@ -27,17 +29,35 @@ export class TicketsService {
     const qrCode =
       crypto.randomUUID();
 
-    return this.prisma.ticket.create({
-      data: {
-        eventId: data.eventId,
-        fullName: data.fullName,
-        email: data.email,
-        qrCode,
-      },
-      include: {
-        event: true,
-      },
-    });
+    const ticket =
+      await this.prisma.ticket.create({
+        data: {
+          eventId: data.eventId,
+          fullName: data.fullName,
+          email: data.email,
+          qrCode,
+        },
+        include: {
+          event: true,
+        },
+      });
+
+    try {
+      await this.mailService.sendTicketEmail({
+        to: ticket.email,
+        fullName: ticket.fullName,
+        eventTitle:
+          ticket.event?.title || 'Evento',
+        qrCode: ticket.qrCode,
+      });
+    } catch (error) {
+      console.log(
+        'Email error:',
+        error,
+      );
+    }
+
+    return ticket;
   }
 
   async checkIn(qrCode: string) {

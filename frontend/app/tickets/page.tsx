@@ -301,9 +301,7 @@ export default function TicketsPage() {
 
                       <button
                         onClick={() =>
-                          downloadTicketPdf(
-                            ticket,
-                          )
+                          downloadTicketPdf(ticket)
                         }
                         className="mt-5 rounded-2xl bg-black px-5 py-3 font-semibold text-white"
                       >
