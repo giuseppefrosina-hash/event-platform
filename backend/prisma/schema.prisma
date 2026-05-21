@@ -23,6 +23,7 @@ model Company {
   email     String?
   phone     String?
   address   String?
+  logo      String?
   createdAt DateTime @default(now())
 
   userId String
@@ -30,7 +31,6 @@ model Company {
 
   events Event[]
 }
-
 
 model Supplier {
   id          String   @id @default(cuid())
