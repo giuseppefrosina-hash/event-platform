@@ -9,7 +9,7 @@ import { CompaniesModule } from './companies/companies.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { CollaboratorsModule } from './collaborators/collaborators.module';
 import { StaffModule } from './staff/staff.module';
-
+import { TicketsModule } from './tickets/tickets.module';
 @Module({
   imports: [
     PrismaModule,
@@ -24,4 +24,3 @@ import { StaffModule } from './staff/staff.module';
   ],
 })
 export class AppModule {}
-import { TicketsModule } from './tickets/tickets.module';
