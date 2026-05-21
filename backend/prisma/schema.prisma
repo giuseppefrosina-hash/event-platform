@@ -101,6 +101,7 @@ model Event {
   costs   EventCost[]
   quotes  Quote[]
   travels Travel[]
+  tickets Ticket[]
 }
 
 model EventCost {
@@ -152,6 +153,18 @@ model Travel {
 
   cost Float
 
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id])
+}
+
+model Ticket {
+  id        String   @id @default(cuid())
+  eventId   String
+  fullName  String
+  email     String
+  qrCode    String   @unique
+  checkedIn Boolean  @default(false)
   createdAt DateTime @default(now())
 
   event Event @relation(fields: [eventId], references: [id])
