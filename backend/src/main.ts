@@ -13,8 +13,9 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
-      'http://localhost:3000',
       'https://app.uniquo.it',
+      'https://event-platform-git-main-giuseppes-projects-70d696f9.vercel.app',
+      'http://localhost:3000',
     ],
     credentials: true,
   });
@@ -41,10 +42,13 @@ async function bootstrap() {
     document,
   );
 
-  await app.listen(process.env.PORT || 3000);
+  const port =
+    process.env.PORT || 3000;
+
+  await app.listen(port);
 
   console.log(
-    'Backend running',
+    `Backend running on port ${port}`,
   );
 }
 
