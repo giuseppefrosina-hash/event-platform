@@ -37,12 +37,14 @@ export default function TicketsPage() {
   async function loadEvents() {
     const res = await fetch(API_URL + '/events');
     const data = await res.json();
+
     setEvents(Array.isArray(data) ? data : []);
   }
 
   async function loadTickets() {
     const res = await fetch(API_URL + '/tickets');
     const data = await res.json();
+
     setTickets(Array.isArray(data) ? data : []);
   }
 
@@ -78,50 +80,32 @@ export default function TicketsPage() {
     loadTickets();
   }
 
-  async function downloadTicketPdf(ticket: Ticket) {
+  function downloadTicketPdf(ticket: Ticket) {
     const doc = new jsPDF();
-
-    const qrCanvas = document.getElementById(
-      `qr-${ticket.id}`,
-    ) as HTMLDivElement;
-
-    const qrSvg =
-      qrCanvas?.querySelector('svg');
-
-    let qrImage = '';
-
-    if (qrSvg) {
-      const svgData =
-        new XMLSerializer().serializeToString(
-          qrSvg,
-        );
-
-      qrImage =
-        'data:image/svg+xml;base64,' +
-        btoa(svgData);
-    }
 
     doc.setFillColor(15, 15, 15);
     doc.rect(0, 0, 210, 45, 'F');
 
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(28);
+
     doc.text('Uniquo', 20, 28);
 
     doc.setFontSize(14);
+
     doc.text('Premium Event Ticket', 20, 38);
 
     doc.setTextColor(20, 20, 20);
 
     doc.setFontSize(22);
+
     doc.text(ticket.fullName, 20, 70);
 
     doc.setFontSize(13);
 
     doc.text(
       'Evento: ' +
-        (ticket.event?.title ||
-          'Evento'),
+        (ticket.event?.title || 'Evento'),
       20,
       90,
     );
@@ -141,27 +125,24 @@ export default function TicketsPage() {
       120,
     );
 
-    if (qrImage) {
-      doc.addImage(
-        qrImage,
-        'SVG',
-        140,
-        70,
-        45,
-        45,
-      );
-    }
+    doc.text('QR Code:', 20, 140);
+
+    doc.setFontSize(9);
+
+    doc.text(ticket.qrCode, 20, 150, {
+      maxWidth: 170,
+    });
 
     doc.setDrawColor(220, 220, 220);
 
-    doc.line(20, 145, 190, 145);
+    doc.line(20, 170, 190, 170);
 
     doc.setFontSize(11);
 
     doc.text(
-      'Presenta questo ticket all’ingresso.',
+      'Presenta questo codice all’ingresso per il check-in.',
       20,
-      165,
+      190,
     );
 
     doc.text(
@@ -284,12 +265,10 @@ export default function TicketsPage() {
                     className="grid gap-6 rounded-[2rem] border border-zinc-200 bg-white p-7 shadow-sm md:grid-cols-[160px_1fr]"
                   >
                     <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
-                      <div id={`qr-${ticket.id}`}>
-                        <QRCode
-                          value={ticket.qrCode}
-                          size={128}
-                        />
-                      </div>
+                      <QRCode
+                        value={ticket.qrCode}
+                        size={128}
+                      />
                     </div>
 
                     <div>
