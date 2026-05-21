@@ -43,13 +43,12 @@ export class TicketsService {
       });
 
     try {
-      await this.mailService.sendTicketEmail({
-        to: ticket.email,
-        fullName: ticket.fullName,
-        eventTitle:
-          ticket.event?.title || 'Evento',
-        qrCode: ticket.qrCode,
-      });
+      await this.mailService.sendTicketEmail(
+  ticket.email,
+  ticket.fullName,
+  ticket.qrCode,
+  ticket.event?.title || 'Evento',
+);
     } catch (error) {
       console.log(
         'Email error:',
