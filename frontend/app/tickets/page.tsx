@@ -45,70 +45,100 @@ export default function TicketsPage() {
     setTickets(Array.isArray(data) ? data : []);
   }
 
-  async function createTicket() {
-    if (!eventId || !fullName || !email) {
-      setMessage('Compila tutti i campi');
-      return;
-    }
+async function downloadTicketPdf(ticket: Ticket) {
+  const doc = new jsPDF();
 
-    const res = await fetch(API_URL + '/tickets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventId, fullName, email }),
-    });
+  const qrCanvas = document.getElementById(
+    `qr-${ticket.id}`,
+  ) as HTMLDivElement;
 
-    if (!res.ok) {
-      setMessage('Errore creazione ticket');
-      return;
-    }
+  const qrSvg =
+    qrCanvas?.querySelector('svg');
 
-    setEventId('');
-    setFullName('');
-    setEmail('');
-    setMessage('Ticket creato con successo');
-    loadTickets();
+  let qrImage = '';
+
+  if (qrSvg) {
+    const svgData = new XMLSerializer().serializeToString(
+      qrSvg,
+    );
+
+    qrImage =
+      'data:image/svg+xml;base64,' +
+      btoa(svgData);
   }
 
-  function downloadTicketPdf(ticket: Ticket) {
-    const doc = new jsPDF();
+  doc.setFillColor(15, 15, 15);
+  doc.rect(0, 0, 210, 45, 'F');
 
-    doc.setFontSize(24);
-    doc.text('Uniquo Ticket', 20, 25);
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(28);
+  doc.text('Uniquo', 20, 28);
 
-    doc.setFontSize(14);
-    doc.text('Biglietto evento', 20, 38);
+  doc.setFontSize(14);
+  doc.text('Premium Event Ticket', 20, 38);
 
-    doc.setFontSize(12);
-    doc.text('Partecipante:', 20, 60);
-    doc.text(ticket.fullName, 20, 68);
+  doc.setTextColor(20, 20, 20);
 
-    doc.text('Email:', 20, 84);
-    doc.text(ticket.email, 20, 92);
+  doc.setFontSize(22);
+  doc.text(ticket.fullName, 20, 70);
 
-    doc.text('Evento:', 20, 108);
-    doc.text(ticket.event?.title || 'Evento non disponibile', 20, 116);
+  doc.setFontSize(13);
 
-    doc.text('Stato:', 20, 132);
-    doc.text(
-      ticket.checkedIn ? 'Check-in effettuato' : 'Da validare',
-      20,
+  doc.text(
+    'Evento: ' +
+      (ticket.event?.title ||
+        'Evento'),
+    20,
+    90,
+  );
+
+  doc.text(
+    'Email: ' + ticket.email,
+    20,
+    105,
+  );
+
+  doc.text(
+    'Status: ' +
+      (ticket.checkedIn
+        ? 'Check-in effettuato'
+        : 'Da validare'),
+    20,
+    120,
+  );
+
+  if (qrImage) {
+    doc.addImage(
+      qrImage,
+      'SVG',
       140,
+      70,
+      45,
+      45,
     );
-
-    doc.text('QR Code:', 20, 156);
-    doc.text(ticket.qrCode, 20, 164, {
-      maxWidth: 170,
-    });
-
-    doc.setFontSize(10);
-    doc.text(
-      'Presenta questo QR code all’ingresso per effettuare il check-in.',
-      20,
-      280,
-    );
-
-    doc.save(`ticket-${ticket.fullName}.pdf`);
   }
+
+  doc.setDrawColor(220, 220, 220);
+  doc.line(20, 145, 190, 145);
+
+  doc.setFontSize(11);
+
+  doc.text(
+    'Presenta questo ticket all’ingresso.',
+    20,
+    165,
+  );
+
+  doc.text(
+    'Powered by Uniquo',
+    20,
+    280,
+  );
+
+  doc.save(
+    `ticket-${ticket.fullName}.pdf`,
+  );
+}
 
   return (
     <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
@@ -207,7 +237,12 @@ export default function TicketsPage() {
                     className="grid gap-6 rounded-[2rem] border border-zinc-200 bg-white p-7 shadow-sm md:grid-cols-[160px_1fr]"
                   >
                     <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
-                      <QRCode value={ticket.qrCode} size={128} />
+                     <div id={`qr-${ticket.id}`}>
+  <QRCode
+    value={ticket.qrCode}
+    size={128}
+  />
+</div>
                     </div>
 
                     <div>
