@@ -1,12 +1,59 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
+const API_URL = 'https://api.uniquo.it';
+
 export default function DashboardPage() {
+  const [eventsCount, setEventsCount] = useState(0);
+  const [companiesCount, setCompaniesCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  async function loadDashboard() {
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        window.location.href = '/';
+        return;
+      }
+
+      const [eventsRes, companiesRes] = await Promise.all([
+        fetch(`${API_URL}/events`),
+        fetch(`${API_URL}/companies`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+      ]);
+
+      const events = await eventsRes.json();
+      const companies = await companiesRes.json();
+
+      setEventsCount(Array.isArray(events) ? events.length : 0);
+      setCompaniesCount(Array.isArray(companies) ? companies.length : 0);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    window.location.href = '/';
+  }
+
   return (
     <main className="min-h-screen bg-[#0b0b0f] text-white">
       <div className="flex min-h-screen">
         <aside className="w-72 border-r border-white/10 bg-black/30 p-6">
           <h1 className="mb-10 text-2xl font-bold">
-            Event Platform
+            Uniquo
           </h1>
 
           <nav className="space-y-3 text-zinc-400">
@@ -14,17 +61,24 @@ export default function DashboardPage() {
               Dashboard
             </a>
             <a className="block rounded-xl px-4 py-3 hover:bg-white/10" href="/">
-              Events
+              Eventi
             </a>
             <a className="block rounded-xl px-4 py-3 hover:bg-white/10" href="/companies">
-              Companies
+              Aziende
             </a>
             <a className="block rounded-xl px-4 py-3 hover:bg-white/10" href="/staff">
               Staff
             </a>
             <a className="block rounded-xl px-4 py-3 hover:bg-white/10" href="/suppliers">
-              Suppliers
+              Fornitori
             </a>
+
+            <button
+              onClick={logout}
+              className="mt-8 block w-full rounded-xl bg-red-500/20 px-4 py-3 text-left text-red-300 hover:bg-red-500/30"
+            >
+              Logout
+            </button>
           </nav>
         </aside>
 
@@ -40,10 +94,10 @@ export default function DashboardPage() {
 
           <div className="grid gap-6 md:grid-cols-4">
             {[
-              ['Events', '12'],
-              ['Companies', '8'],
-              ['Staff', '5'],
-              ['Revenue', '€0'],
+              ['Eventi', loading ? '...' : String(eventsCount)],
+              ['Aziende', loading ? '...' : String(companiesCount)],
+              ['Staff', '0'],
+              ['Ricavi', '€0'],
             ].map(([label, value]) => (
               <div
                 key={label}
@@ -58,29 +112,29 @@ export default function DashboardPage() {
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-8">
               <h3 className="mb-4 text-2xl font-bold">
-                Quick Actions
+                Azioni rapide
               </h3>
 
               <div className="grid gap-4">
                 <a href="/companies" className="rounded-2xl bg-white px-5 py-4 font-semibold text-black">
-                  Manage Companies
+                  Gestisci aziende
                 </a>
                 <a href="/" className="rounded-2xl bg-white/10 px-5 py-4 font-semibold text-white">
-                  Manage Events
+                  Gestisci eventi
                 </a>
               </div>
             </div>
 
             <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-8">
               <h3 className="mb-4 text-2xl font-bold">
-                System Status
+                Stato sistema
               </h3>
 
               <div className="space-y-4 text-zinc-300">
                 <p>✅ Frontend online</p>
-                <p>✅ Backend API connected</p>
-                <p>✅ Database connected</p>
-                <p>✅ Custom domain configured</p>
+                <p>✅ Backend API collegato</p>
+                <p>✅ Database collegato</p>
+                <p>✅ Dominio personalizzato attivo</p>
               </div>
             </div>
           </div>
