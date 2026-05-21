@@ -77,6 +77,9 @@ export default function DashboardPage() {
   Ticket
 </a>
 
+<a className="block rounded-xl px-4 py-3 hover:bg-white/10" href="/checkin">
+  Check-in QR
+</a>
             <button
               onClick={logout}
               className="mt-8 block w-full rounded-xl bg-red-500/20 px-4 py-3 text-left text-red-300 hover:bg-red-500/30"
