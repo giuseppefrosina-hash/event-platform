@@ -21,7 +21,7 @@ import { MailModule } from './mail/mail.module';
     CompaniesModule,
     SuppliersModule,
     StaffModule,
-    UploadModule,
+    CloudinaryModule,
     TicketsModule,
     MailModule,
   ],
