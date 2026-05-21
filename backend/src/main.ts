@@ -14,6 +14,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'https://app.uniquo.it',
+      'https://event-platform-six-fawn.vercel.app',
       'https://event-platform-git-main-giuseppes-projects-70d696f9.vercel.app',
       'http://localhost:3000',
     ],
