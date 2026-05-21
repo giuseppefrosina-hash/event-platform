@@ -10,7 +10,7 @@ import { EventsModule } from './events/events.module';
 import { CompaniesModule } from './companies/companies.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { StaffModule } from './staff/staff.module';
-import { UploadModule } from './upload/upload.module';
+import { CloudinaryModule } from './upload/cloudinary/cloudinary.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { MailModule } from './mail/mail.module';
 
