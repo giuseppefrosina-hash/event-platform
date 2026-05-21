@@ -15,10 +15,11 @@ type Company = {
   phone?: string;
   vatNumber?: string;
   address?: string;
+  logo?: string;
 };
 
 type AddressSuggestion = {
-  place_id: number;
+  place_id: string;
   display_name: string;
 };
 
@@ -26,26 +27,18 @@ export default function CompaniesPage() {
   const [companies, setCompanies] =
     useState<Company[]>([]);
 
-  const [token, setToken] =
-    useState('');
+  const [token, setToken] = useState('');
+  const [message, setMessage] = useState('');
 
-  const [message, setMessage] =
-    useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [vatNumber, setVatNumber] = useState('');
+  const [address, setAddress] = useState('');
 
-  const [name, setName] =
-    useState('');
-
-  const [email, setEmail] =
-    useState('');
-
-  const [phone, setPhone] =
-    useState('');
-
-  const [vatNumber, setVatNumber] =
-    useState('');
-
-  const [address, setAddress] =
-    useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+  const [uploadingLogo, setUploadingLogo] =
+    useState(false);
 
   const [suggestions, setSuggestions] =
     useState<AddressSuggestion[]>([]);
@@ -56,7 +49,6 @@ export default function CompaniesPage() {
 
     if (savedToken) {
       setToken(savedToken);
-
       loadCompanies(savedToken);
     }
   }, []);
@@ -67,42 +59,31 @@ export default function CompaniesPage() {
       return;
     }
 
-    const timer = setTimeout(
-      async () => {
-        try {
-          const res = await fetch(
-            `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
-              address,
-            )}&limit=5&lang=it&apiKey=${GEOAPIFY_KEY}`,
-          );
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
+            address,
+          )}&limit=5&lang=it&apiKey=${GEOAPIFY_KEY}`,
+        );
 
-          const data =
-            await res.json();
+        const data = await res.json();
 
-          const formatted =
-            data.features?.map(
-              (item: any) => ({
-                place_id:
-                  item.properties
-                    .place_id,
-                display_name:
-                  item.properties
-                    .formatted,
-              }),
-            ) || [];
+        const formatted =
+          data.features?.map((item: any) => ({
+            place_id:
+              item.properties.place_id,
+            display_name:
+              item.properties.formatted,
+          })) || [];
 
-          setSuggestions(
-            formatted,
-          );
-        } catch {
-          setSuggestions([]);
-        }
-      },
-      400,
-    );
+        setSuggestions(formatted);
+      } catch {
+        setSuggestions([]);
+      }
+    }, 400);
 
-    return () =>
-      clearTimeout(timer);
+    return () => clearTimeout(timer);
   }, [address]);
 
   async function loadCompanies(
@@ -112,15 +93,10 @@ export default function CompaniesPage() {
       const jwtToken =
         currentToken ||
         token ||
-        localStorage.getItem(
-          'token',
-        );
+        localStorage.getItem('token');
 
       if (!jwtToken) {
-        setMessage(
-          'Effettua il login',
-        );
-
+        setMessage('Effettua il login');
         return;
       }
 
@@ -133,22 +109,18 @@ export default function CompaniesPage() {
         },
       );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
         setMessage(
           data.message ||
             'Errore caricamento aziende',
         );
-
         return;
       }
 
       setCompanies(
-        Array.isArray(data)
-          ? data
-          : [],
+        Array.isArray(data) ? data : [],
       );
     } catch {
       setMessage(
@@ -157,19 +129,53 @@ export default function CompaniesPage() {
     }
   }
 
+  async function uploadLogo(
+    file: File,
+  ) {
+    try {
+      setUploadingLogo(true);
+      setMessage('Caricamento logo...');
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(
+        `${API_URL}/upload/image`,
+        {
+          method: 'POST',
+          body: formData,
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(
+          data.message ||
+            'Errore upload logo',
+        );
+        return;
+      }
+
+      setLogoUrl(data.url);
+      setMessage('Logo caricato');
+    } catch {
+      setMessage('Errore upload logo');
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+
   async function createCompany() {
     try {
       const jwtToken =
         token ||
-        localStorage.getItem(
-          'token',
-        );
+        localStorage.getItem('token');
 
       if (!jwtToken) {
         setMessage(
           'Effettua il login prima',
         );
-
         return;
       }
 
@@ -190,19 +196,18 @@ export default function CompaniesPage() {
               : '',
             vatNumber,
             address,
+            logo: logoUrl,
           }),
         },
       );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
         setMessage(
           data.message ||
             'Errore creazione azienda',
         );
-
         return;
       }
 
@@ -211,6 +216,7 @@ export default function CompaniesPage() {
       setPhone('');
       setVatNumber('');
       setAddress('');
+      setLogoUrl('');
       setSuggestions([]);
 
       setMessage(
@@ -233,8 +239,7 @@ export default function CompaniesPage() {
         </h1>
 
         <p className="mb-8 text-zinc-500">
-          Gestione aziende
-          professionale.
+          Gestione aziende professionale.
         </p>
 
         {message && (
@@ -250,13 +255,44 @@ export default function CompaniesPage() {
             </h2>
 
             <div className="space-y-4">
+              <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-5 text-center">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt="Logo azienda"
+                    className="mx-auto mb-4 h-24 w-24 rounded-2xl object-cover"
+                  />
+                ) : (
+                  <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-2xl bg-white text-zinc-400">
+                    Logo
+                  </div>
+                )}
+
+                <label className="cursor-pointer rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white">
+                  {uploadingLogo
+                    ? 'Caricamento...'
+                    : 'Carica logo'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => {
+                      const file =
+                        e.target.files?.[0];
+
+                      if (file) {
+                        uploadLogo(file);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+
               <input
                 placeholder="Nome azienda"
                 value={name}
                 onChange={(e) =>
-                  setName(
-                    e.target.value,
-                  )
+                  setName(e.target.value)
                 }
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
@@ -265,9 +301,7 @@ export default function CompaniesPage() {
                 placeholder="Email"
                 value={email}
                 onChange={(e) =>
-                  setEmail(
-                    e.target.value,
-                  )
+                  setEmail(e.target.value)
                 }
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
@@ -307,8 +341,7 @@ export default function CompaniesPage() {
                   className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
                 />
 
-                {suggestions.length >
-                  0 && (
+                {suggestions.length > 0 && (
                   <div className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-2xl border border-zinc-200 bg-white shadow-lg">
                     {suggestions.map(
                       (item) => (
@@ -321,7 +354,6 @@ export default function CompaniesPage() {
                             setAddress(
                               item.display_name,
                             );
-
                             setSuggestions(
                               [],
                             );
@@ -364,8 +396,7 @@ export default function CompaniesPage() {
             </div>
 
             <div className="grid gap-5">
-              {companies.length ===
-              0 ? (
+              {companies.length === 0 ? (
                 <div className="rounded-[2rem] bg-white p-10 text-center text-zinc-500 shadow-sm">
                   Nessuna azienda trovata.
                 </div>
@@ -373,41 +404,51 @@ export default function CompaniesPage() {
                 companies.map(
                   (company) => (
                     <article
-                      key={
-                        company.id
-                      }
-                      className="rounded-[2rem] bg-white p-7 shadow-sm"
+                      key={company.id}
+                      className="flex gap-5 rounded-[2rem] bg-white p-7 shadow-sm"
                     >
-                      <h3 className="text-2xl font-bold">
-                        {
-                          company.name
-                        }
-                      </h3>
+                      {company.logo ? (
+                        <img
+                          src={company.logo}
+                          alt={company.name}
+                          className="h-20 w-20 rounded-2xl object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-400">
+                          Logo
+                        </div>
+                      )}
 
-                      <div className="mt-4 grid gap-2 text-zinc-500">
-                        <p>
-                          📧{' '}
-                          {company.email ||
-                            'Non disponibile'}
-                        </p>
+                      <div>
+                        <h3 className="text-2xl font-bold">
+                          {company.name}
+                        </h3>
 
-                        <p>
-                          📞{' '}
-                          {company.phone ||
-                            'Non disponibile'}
-                        </p>
+                        <div className="mt-4 grid gap-2 text-zinc-500">
+                          <p>
+                            📧{' '}
+                            {company.email ||
+                              'Non disponibile'}
+                          </p>
 
-                        <p>
-                          🧾{' '}
-                          {company.vatNumber ||
-                            'Non disponibile'}
-                        </p>
+                          <p>
+                            📞{' '}
+                            {company.phone ||
+                              'Non disponibile'}
+                          </p>
 
-                        <p>
-                          📍{' '}
-                          {company.address ||
-                            'Non disponibile'}
-                        </p>
+                          <p>
+                            🧾{' '}
+                            {company.vatNumber ||
+                              'Non disponibile'}
+                          </p>
+
+                          <p>
+                            📍{' '}
+                            {company.address ||
+                              'Non disponibile'}
+                          </p>
+                        </div>
                       </div>
                     </article>
                   ),
