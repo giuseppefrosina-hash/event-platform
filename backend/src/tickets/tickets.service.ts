@@ -26,34 +26,29 @@ export class TicketsService {
     fullName: string;
     email: string;
   }) {
-    const qrCode =
-      crypto.randomUUID();
+    const qrCode = crypto.randomUUID();
 
-    const ticket =
-      await this.prisma.ticket.create({
-        data: {
-          eventId: data.eventId,
-          fullName: data.fullName,
-          email: data.email,
-          qrCode,
-        },
-        include: {
-          event: true,
-        },
-      });
+    const ticket = await this.prisma.ticket.create({
+      data: {
+        eventId: data.eventId,
+        fullName: data.fullName,
+        email: data.email,
+        qrCode,
+      },
+      include: {
+        event: true,
+      },
+    });
 
     try {
-      await this.mailService.sendTicketEmail(
-  ticket.email,
-  ticket.fullName,
-  ticket.qrCode,
-  ticket.event?.title || 'Evento',
-);
+      await this.mailService.sendTicketEmail({
+        to: ticket.email,
+        fullName: ticket.fullName,
+        eventTitle: ticket.event?.title || 'Evento',
+        qrCode: ticket.qrCode,
+      });
     } catch (error) {
-      console.log(
-        'Email error:',
-        error,
-      );
+      console.log('Email error:', error);
     }
 
     return ticket;
