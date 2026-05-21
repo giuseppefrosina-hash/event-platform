@@ -6,8 +6,17 @@ const API_URL = 'https://api.uniquo.it';
 
 export default function DashboardPage() {
   const [eventsCount, setEventsCount] = useState(0);
-  const [companiesCount, setCompaniesCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+const [eventsCount, setEventsCount] = useState(0);
+const [companiesCount, setCompaniesCount] = useState(0);
+
+const [ticketsCount, setTicketsCount] =
+  useState(0);
+
+const [revenue, setRevenue] =
+  useState(0);
+
+const [loading, setLoading] =
+  useState(true);
 
   useEffect(() => {
     loadDashboard();
@@ -22,20 +31,67 @@ export default function DashboardPage() {
         return;
       }
 
-      const [eventsRes, companiesRes] = await Promise.all([
-        fetch(`${API_URL}/events`),
-        fetch(`${API_URL}/companies`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-      ]);
+      const token = localStorage.getItem('token');
 
-      const events = await eventsRes.json();
-      const companies = await companiesRes.json();
+const [
+  eventsRes,
+  companiesRes,
+  ticketsRes,
+] = await Promise.all([
+  fetch(`${API_URL}/events`),
 
-      setEventsCount(Array.isArray(events) ? events.length : 0);
-      setCompaniesCount(Array.isArray(companies) ? companies.length : 0);
+  fetch(`${API_URL}/companies`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }),
+
+  fetch(`${API_URL}/tickets`),
+]);
+
+const events =
+  await eventsRes.json();
+
+const companies =
+  await companiesRes.json();
+
+const tickets =
+  await ticketsRes.json();
+
+setEventsCount(
+  Array.isArray(events)
+    ? events.length
+    : 0,
+);
+
+setCompaniesCount(
+  Array.isArray(companies)
+    ? companies.length
+    : 0,
+);
+
+setTicketsCount(
+  Array.isArray(tickets)
+    ? tickets.length
+    : 0,
+);
+
+const totalRevenue =
+  Array.isArray(events)
+    ? events.reduce(
+        (
+          acc: number,
+          event: any,
+        ) =>
+          acc +
+          Number(
+            event.price || 0,
+          ),
+        0,
+      )
+    : 0;
+
+setRevenue(totalRevenue);
     } catch (error) {
       console.error(error);
     } finally {
@@ -101,11 +157,34 @@ export default function DashboardPage() {
 
           <div className="grid gap-6 md:grid-cols-4">
             {[
-              ['Eventi', loading ? '...' : String(eventsCount)],
-              ['Aziende', loading ? '...' : String(companiesCount)],
-              ['Staff', '0'],
-              ['Ricavi', '€0'],
-            ].map(([label, value]) => (
+  [
+    'Eventi',
+    loading
+      ? '...'
+      : String(eventsCount),
+  ],
+
+  [
+    'Aziende',
+    loading
+      ? '...'
+      : String(companiesCount),
+  ],
+
+  [
+    'Ticket',
+    loading
+      ? '...'
+      : String(ticketsCount),
+  ],
+
+  [
+    'Revenue',
+    loading
+      ? '...'
+      : `€${revenue}`,
+  ],
+].map(([label, value]) => (
               <div
                 key={label}
                 className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6"
@@ -133,20 +212,80 @@ export default function DashboardPage() {
             </div>
 
             <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-8">
-              <h3 className="mb-4 text-2xl font-bold">
-                Stato sistema
-              </h3>
+              <h3 className="mb-6 text-2xl font-bold">
+  Analytics
+</h3>
 
-              <div className="space-y-4 text-zinc-300">
-                <p>✅ Frontend online</p>
-                <p>✅ Backend API collegato</p>
-                <p>✅ Database collegato</p>
-                <p>✅ Dominio personalizzato attivo</p>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
-  );
-}
+<div className="space-y-5">
+  <div>
+    <div className="mb-2 flex items-center justify-between">
+      <span className="text-zinc-400">
+        Ticket venduti
+      </span>
+
+      <span className="font-semibold">
+        {ticketsCount}
+      </span>
+    </div>
+
+    <div className="h-3 overflow-hidden rounded-full bg-white/10">
+      <div
+        className="h-full rounded-full bg-emerald-400"
+        style={{
+          width: `${Math.min(
+            ticketsCount * 10,
+            100,
+          )}%`,
+        }}
+      />
+    </div>
+  </div>
+
+  <div>
+    <div className="mb-2 flex items-center justify-between">
+      <span className="text-zinc-400">
+        Revenue
+      </span>
+
+      <span className="font-semibold">
+        €{revenue}
+      </span>
+    </div>
+
+    <div className="h-3 overflow-hidden rounded-full bg-white/10">
+      <div
+        className="h-full rounded-full bg-blue-400"
+        style={{
+          width: `${Math.min(
+            revenue / 10,
+            100,
+          )}%`,
+        }}
+      />
+    </div>
+  </div>
+
+  <div>
+    <div className="mb-2 flex items-center justify-between">
+      <span className="text-zinc-400">
+        Eventi attivi
+      </span>
+
+      <span className="font-semibold">
+        {eventsCount}
+      </span>
+    </div>
+
+    <div className="h-3 overflow-hidden rounded-full bg-white/10">
+      <div
+        className="h-full rounded-full bg-pink-400"
+        style={{
+          width: `${Math.min(
+            eventsCount * 15,
+            100,
+          )}%`,
+        }}
+      />
+    </div>
+  </div>
+</div>
