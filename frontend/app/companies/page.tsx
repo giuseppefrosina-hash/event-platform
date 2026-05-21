@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = "https://api.uniquo.it";
 
 type Company = {
   id: number;
