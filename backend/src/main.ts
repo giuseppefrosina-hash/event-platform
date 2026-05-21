@@ -11,7 +11,13 @@ async function bootstrap() {
     AppModule,
   );
 
-  app.enableCors();
+  app.enableCors({
+    origin: [
+      'http://localhost:3000',
+      'https://app.uniquo.it',
+    ],
+    credentials: true,
+  });
 
   const config =
     new DocumentBuilder()
@@ -35,10 +41,10 @@ async function bootstrap() {
     document,
   );
 
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3000);
 
   console.log(
-    'Backend running on http://localhost:3000',
+    'Backend running',
   );
 }
 
