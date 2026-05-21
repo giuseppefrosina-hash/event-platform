@@ -39,6 +39,7 @@ export class CompaniesService {
       email?: string;
       phone?: string;
       address?: string;
+      logo?: string;
     },
   ) {
     return this.prisma.company.create({
@@ -58,6 +59,7 @@ export class CompaniesService {
       email?: string;
       phone?: string;
       address?: string;
+      logo?: string;
     },
   ) {
     return this.prisma.company.update({
