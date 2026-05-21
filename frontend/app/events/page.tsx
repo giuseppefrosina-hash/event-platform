@@ -41,7 +41,7 @@ export default function EventsPage() {
 
   async function loadEvents() {
     try {
-      const res = await fetch(`${API_URL}/events`);
+      const res = await fetch(API_URL + '/events');
       const data = await res.json();
       setEvents(Array.isArray(data) ? data : []);
     } catch {
@@ -52,12 +52,11 @@ export default function EventsPage() {
   async function loadCompanies() {
     try {
       const token = localStorage.getItem('token');
-
       if (!token) return;
 
-      const res = await fetch(`${API_URL}/companies`, {
+      const res = await fetch(API_URL + '/companies', {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: 'Bearer ' + token,
         },
       });
 
@@ -76,7 +75,7 @@ export default function EventsPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch(`${API_URL}/upload/image`, {
+      const res = await fetch(API_URL + '/upload/image', {
         method: 'POST',
         body: formData,
       });
@@ -104,7 +103,7 @@ export default function EventsPage() {
         return;
       }
 
-      const res = await fetch(`${API_URL}/events`, {
+      const res = await fetch(API_URL + '/events', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +141,7 @@ export default function EventsPage() {
 
   async function deleteEvent(id: string) {
     try {
-      await fetch(`${API_URL}/events/${id}`, {
+      await fetch(API_URL + '/events/' + id, {
         method: 'DELETE',
       });
 
@@ -154,40 +153,36 @@ export default function EventsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0b0f] text-white">
+    <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-10 flex items-center justify-between">
           <div>
             <p className="mb-2 text-sm uppercase tracking-[0.3em] text-zinc-500">
               Event Management
             </p>
-            <h1 className="text-5xl font-bold">
-              Eventi
-            </h1>
+            <h1 className="text-5xl font-bold">Eventi</h1>
           </div>
 
           <a
             href="/dashboard"
-            className="rounded-2xl bg-white px-5 py-3 font-semibold text-black"
+            className="rounded-2xl bg-black px-5 py-3 font-semibold text-white"
           >
             Dashboard
           </a>
         </div>
 
         {message && (
-          <div className="mb-8 rounded-2xl border border-white/10 bg-white/[0.06] p-5">
+          <div className="mb-8 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
             {message}
           </div>
         )}
 
         <div className="grid gap-8 lg:grid-cols-[420px_1fr]">
-          <section className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-8">
-            <h2 className="mb-6 text-2xl font-bold">
-              Nuovo evento
-            </h2>
+          <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 shadow-sm">
+            <h2 className="mb-6 text-2xl font-bold">Nuovo evento</h2>
 
             <div className="space-y-4">
-              <div className="rounded-2xl border border-dashed border-white/20 bg-black/20 p-5 text-center">
+              <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-5 text-center">
                 {imageUrl ? (
                   <img
                     src={imageUrl}
@@ -195,15 +190,13 @@ export default function EventsPage() {
                     className="mb-4 h-44 w-full rounded-2xl object-cover"
                   />
                 ) : (
-                  <div className="mb-4 flex h-44 items-center justify-center rounded-2xl bg-white/10 text-zinc-500">
+                  <div className="mb-4 flex h-44 items-center justify-center rounded-2xl bg-white text-zinc-400">
                     Cover evento
                   </div>
                 )}
 
-                <label className="cursor-pointer rounded-xl bg-white px-4 py-3 text-sm font-semibold text-black">
-                  {uploading
-                    ? 'Caricamento...'
-                    : 'Carica cover'}
+                <label className="cursor-pointer rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white">
+                  {uploading ? 'Caricamento...' : 'Carica cover'}
                   <input
                     type="file"
                     accept="image/*"
@@ -220,57 +213,46 @@ export default function EventsPage() {
                 placeholder="Titolo evento"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 outline-none"
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
               <textarea
                 placeholder="Descrizione"
                 value={description}
-                onChange={(e) =>
-                  setDescription(e.target.value)
-                }
-                className="min-h-28 w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 outline-none"
+                onChange={(e) => setDescription(e.target.value)}
+                className="min-h-28 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
               <input
                 placeholder="Luogo"
                 value={location}
-                onChange={(e) =>
-                  setLocation(e.target.value)
-                }
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 outline-none"
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
               <input
                 type="datetime-local"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 outline-none"
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
               <input
                 placeholder="Prezzo"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 outline-none"
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
               <select
                 value={companyId}
-                onChange={(e) =>
-                  setCompanyId(e.target.value)
-                }
-                className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 outline-none"
+                onChange={(e) => setCompanyId(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               >
-                <option value="">
-                  Nessuna azienda collegata
-                </option>
+                <option value="">Nessuna azienda collegata</option>
 
                 {companies.map((company) => (
-                  <option
-                    key={company.id}
-                    value={company.id}
-                  >
+                  <option key={company.id} value={company.id}>
                     {company.name}
                   </option>
                 ))}
@@ -278,7 +260,7 @@ export default function EventsPage() {
 
               <button
                 onClick={createEvent}
-                className="w-full rounded-2xl bg-white px-6 py-4 font-semibold text-black"
+                className="w-full rounded-2xl bg-black px-6 py-4 font-semibold text-white"
               >
                 Crea evento
               </button>
@@ -287,13 +269,11 @@ export default function EventsPage() {
 
           <section>
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">
-                Lista eventi
-              </h2>
+              <h2 className="text-2xl font-bold">Lista eventi</h2>
 
               <button
                 onClick={loadEvents}
-                className="rounded-2xl bg-white px-5 py-3 text-black"
+                className="rounded-2xl bg-black px-5 py-3 text-white"
               >
                 Refresh
               </button>
@@ -301,14 +281,14 @@ export default function EventsPage() {
 
             <div className="grid gap-6">
               {events.length === 0 ? (
-                <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-10 text-center text-zinc-500">
+                <div className="rounded-[2rem] border border-zinc-200 bg-white p-10 text-center text-zinc-500 shadow-sm">
                   Nessun evento trovato.
                 </div>
               ) : (
                 events.map((event) => (
                   <article
                     key={event.id}
-                    className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.06]"
+                    className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-sm"
                   >
                     {event.image && (
                       <img
@@ -326,43 +306,30 @@ export default function EventsPage() {
                           </h3>
 
                           {event.company && (
-                            <p className="mt-2 text-zinc-400">
-                              Azienda:{' '}
-                              {event.company.name}
+                            <p className="mt-2 text-zinc-500">
+                              Azienda: {event.company.name}
                             </p>
                           )}
                         </div>
 
                         <button
-                          onClick={() =>
-                            deleteEvent(event.id)
-                          }
-                          className="rounded-xl bg-red-500/20 px-4 py-2 text-red-300"
+                          onClick={() => deleteEvent(event.id)}
+                          className="rounded-xl bg-red-500/10 px-4 py-2 text-red-500"
                         >
                           Elimina
                         </button>
                       </div>
 
-                      <p className="mb-4 text-zinc-400">
-                        {event.description ||
-                          'Nessuna descrizione'}
+                      <p className="mb-4 text-zinc-500">
+                        {event.description || 'Nessuna descrizione'}
                       </p>
 
-                      <div className="grid gap-2 text-zinc-300">
+                      <div className="grid gap-2 text-zinc-600">
+                        <p>📍 {event.location || 'Luogo non indicato'}</p>
                         <p>
-                          📍{' '}
-                          {event.location ||
-                            'Luogo non indicato'}
+                          📅 {new Date(event.date).toLocaleString('it-IT')}
                         </p>
-                        <p>
-                          📅{' '}
-                          {new Date(
-                            event.date,
-                          ).toLocaleString('it-IT')}
-                        </p>
-                        <p>
-                          💶 € {event.price || 0}
-                        </p>
+                        <p>💶 € {event.price || 0}</p>
                       </div>
                     </div>
                   </article>
