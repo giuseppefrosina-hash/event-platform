@@ -157,7 +157,9 @@ export default function CompaniesPage() {
         return;
       }
 
-      setLogoUrl(data.url);
+      setLogoUrl(
+  data.secure_url || data.url,
+);
       setMessage('Logo caricato');
     } catch {
       setMessage('Errore upload logo');
