@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:3000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export default function Home() {
   const [events, setEvents] = useState<any[]>([]);
@@ -18,6 +19,12 @@ export default function Home() {
 
   const [token, setToken] = useState("");
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error">("success");
+
+  function showToast(text: string, type: "success" | "error" = "success") {
+    setMessage(text);
+    setMessageType(type);
+  }
 
   useEffect(() => {
     fetchEvents();
@@ -36,7 +43,6 @@ export default function Home() {
   async function fetchEvents() {
     try {
       const res = await fetch(`${API_URL}/events`);
-
       const data = await res.json();
 
       if (Array.isArray(data)) {
@@ -51,6 +57,7 @@ export default function Home() {
     } catch (err) {
       console.error(err);
       setEvents([]);
+      showToast("Impossibile caricare gli eventi", "error");
     }
   }
 
@@ -67,12 +74,15 @@ export default function Home() {
         }),
       });
 
-      await res.json();
+      if (!res.ok) {
+        showToast("Registrazione fallita. Controlla email e password.", "error");
+        return;
+      }
 
-      setMessage("Registration completed");
+      showToast("Registrazione completata con successo", "success");
     } catch (err) {
       console.error(err);
-      setMessage("Registration failed");
+      showToast("Errore di connessione durante la registrazione", "error");
     }
   }
 
@@ -89,30 +99,40 @@ export default function Home() {
         }),
       });
 
-      const data = await res.json();
+      if (!res.ok) {
+        showToast("Email o password non corretti", "error");
+        return;
+      }
 
+      const data = await res.json();
       const jwtToken = data.access_token || data.token;
 
       if (jwtToken) {
         setToken(jwtToken);
-
         localStorage.setItem("token", jwtToken);
 
-        setMessage("Login successful");
+        showToast("Accesso effettuato con successo", "success");
 
-        window.location.href = "/companies";
+        setTimeout(() => {
+          window.location.href = "/companies";
+        }, 1000);
       } else {
-        setMessage("Login failed");
+        showToast("Accesso fallito. Token non ricevuto.", "error");
       }
     } catch (err) {
       console.error(err);
-      setMessage("Login error");
+      showToast("Errore di connessione durante il login", "error");
     }
   }
 
   async function createEvent() {
     try {
       const savedToken = token || localStorage.getItem("token");
+
+      if (!savedToken) {
+        showToast("Devi effettuare il login prima di creare un evento", "error");
+        return;
+      }
 
       const res = await fetch(`${API_URL}/events`, {
         method: "POST",
@@ -129,9 +149,12 @@ export default function Home() {
         }),
       });
 
-      await res.json();
+      if (!res.ok) {
+        showToast("Creazione evento fallita", "error");
+        return;
+      }
 
-      setMessage("Event created");
+      showToast("Evento creato con successo", "success");
 
       setTitle("");
       setDescription("");
@@ -142,7 +165,7 @@ export default function Home() {
       fetchEvents();
     } catch (err) {
       console.error(err);
-      setMessage("Error creating event");
+      showToast("Errore durante la creazione dell’evento", "error");
     }
   }
 
@@ -162,12 +185,13 @@ export default function Home() {
             position: "fixed",
             top: "30px",
             right: "30px",
-            background: "#111",
+            background: messageType === "success" ? "#0a7f3f" : "#c62828",
             color: "#fff",
             padding: "18px 28px",
             borderRadius: "18px",
             fontSize: "16px",
             zIndex: 999,
+            boxShadow: "0 12px 30px rgba(0,0,0,0.2)",
           }}
         >
           {message}
@@ -175,22 +199,11 @@ export default function Home() {
       )}
 
       <div style={{ marginBottom: "80px" }}>
-        <h1
-          style={{
-            fontSize: "72px",
-            fontWeight: 700,
-            marginBottom: "16px",
-          }}
-        >
+        <h1 style={{ fontSize: "72px", fontWeight: 700, marginBottom: "16px" }}>
           Event Platform
         </h1>
 
-        <p
-          style={{
-            fontSize: "28px",
-            color: "#666",
-          }}
-        >
+        <p style={{ fontSize: "28px", color: "#666" }}>
           Discover premium experiences
         </p>
       </div>
@@ -203,21 +216,8 @@ export default function Home() {
           marginBottom: "80px",
         }}
       >
-        <div
-          style={{
-            background: "#f5f5f7",
-            borderRadius: "32px",
-            padding: "40px",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "32px",
-              marginBottom: "32px",
-            }}
-          >
-            Authentication
-          </h2>
+        <div style={cardStyle}>
+          <h2 style={sectionTitle}>Autenticazione</h2>
 
           <input
             placeholder="Email"
@@ -234,55 +234,36 @@ export default function Home() {
             style={inputStyle}
           />
 
-          <div
-            style={{
-              display: "flex",
-              gap: "16px",
-              marginTop: "24px",
-            }}
-          >
+          <div style={{ display: "flex", gap: "16px", marginTop: "24px" }}>
             <button onClick={register} style={secondaryButton}>
-              Register
+              Registrati
             </button>
 
             <button onClick={login} style={primaryButton}>
-              Login
+              Accedi
             </button>
           </div>
         </div>
 
-        <div
-          style={{
-            background: "#f5f5f7",
-            borderRadius: "32px",
-            padding: "40px",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "32px",
-              marginBottom: "32px",
-            }}
-          >
-            Create Event
-          </h2>
+        <div style={cardStyle}>
+          <h2 style={sectionTitle}>Crea evento</h2>
 
           <input
-            placeholder="Title"
+            placeholder="Titolo"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             style={inputStyle}
           />
 
           <input
-            placeholder="Description"
+            placeholder="Descrizione"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             style={inputStyle}
           />
 
           <input
-            placeholder="Location"
+            placeholder="Luogo"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             style={inputStyle}
@@ -296,7 +277,7 @@ export default function Home() {
           />
 
           <input
-            placeholder="Price"
+            placeholder="Prezzo"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             style={inputStyle}
@@ -310,27 +291,17 @@ export default function Home() {
               marginTop: "16px",
             }}
           >
-            Create Event
+            Crea evento
           </button>
         </div>
       </div>
 
       <div>
-        <h2
-          style={{
-            fontSize: "48px",
-            marginBottom: "32px",
-          }}
-        >
-          Events
+        <h2 style={{ fontSize: "48px", marginBottom: "32px" }}>
+          Eventi
         </h2>
 
-        <div
-          style={{
-            display: "grid",
-            gap: "24px",
-          }}
-        >
+        <div style={{ display: "grid", gap: "24px" }}>
           {events.length === 0 && (
             <div
               style={{
@@ -341,52 +312,29 @@ export default function Home() {
                 fontSize: "18px",
               }}
             >
-              No events yet
+              Nessun evento presente
             </div>
           )}
 
           {events.map((event: any, index: number) => (
-            <div
-              key={index}
-              style={{
-                background: "#f5f5f7",
-                borderRadius: "28px",
-                padding: "32px",
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: "28px",
-                  marginBottom: "12px",
-                }}
-              >
-                {event.title || "Untitled Event"}
+            <div key={index} style={eventCardStyle}>
+              <h3 style={{ fontSize: "28px", marginBottom: "12px" }}>
+                {event.title || "Evento senza titolo"}
               </h3>
 
-              <p
-                style={{
-                  color: "#666",
-                  marginBottom: "12px",
-                }}
-              >
-                {event.description || "No description"}
+              <p style={{ color: "#666", marginBottom: "12px" }}>
+                {event.description || "Nessuna descrizione"}
               </p>
 
               <p style={{ marginBottom: "8px" }}>
-                📍 {event.location || "Unknown location"}
+                📍 {event.location || "Luogo non indicato"}
               </p>
 
               <p style={{ marginBottom: "8px" }}>
-                📅 {event.date || "No date"}
+                📅 {event.date || "Data non indicata"}
               </p>
 
-              <p
-                style={{
-                  marginTop: "16px",
-                  fontWeight: 600,
-                  fontSize: "20px",
-                }}
-              >
+              <p style={{ marginTop: "16px", fontWeight: 600, fontSize: "20px" }}>
                 € {event.price || 0}
               </p>
             </div>
@@ -396,6 +344,23 @@ export default function Home() {
     </main>
   );
 }
+
+const cardStyle = {
+  background: "#f5f5f7",
+  borderRadius: "32px",
+  padding: "40px",
+};
+
+const sectionTitle = {
+  fontSize: "32px",
+  marginBottom: "32px",
+};
+
+const eventCardStyle = {
+  background: "#f5f5f7",
+  borderRadius: "28px",
+  padding: "32px",
+};
 
 const inputStyle = {
   width: "100%",
