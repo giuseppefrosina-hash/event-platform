@@ -60,7 +60,7 @@ export default function DashboardPage() {
             <a className="block rounded-xl bg-white/10 px-4 py-3 text-white" href="/dashboard">
               Dashboard
             </a>
-            <a className="block rounded-xl px-4 py-3 hover:bg-white/10" href="/">
+            <a className="block rounded-xl px-4 py-3 hover:bg-white/10" href="/events">
               Eventi
             </a>
             <a className="block rounded-xl px-4 py-3 hover:bg-white/10" href="/companies">
@@ -70,8 +70,12 @@ export default function DashboardPage() {
               Staff
             </a>
             <a className="block rounded-xl px-4 py-3 hover:bg-white/10" href="/suppliers">
-              Fornitori
-            </a>
+  Fornitori
+</a>
+
+<a className="block rounded-xl px-4 py-3 hover:bg-white/10" href="/tickets">
+  Ticket
+</a>
 
             <button
               onClick={logout}
@@ -119,7 +123,7 @@ export default function DashboardPage() {
                 <a href="/companies" className="rounded-2xl bg-white px-5 py-4 font-semibold text-black">
                   Gestisci aziende
                 </a>
-                <a href="/" className="rounded-2xl bg-white/10 px-5 py-4 font-semibold text-white">
+                <a href="/events" className="rounded-2xl bg-white/10 px-5 py-4 font-semibold text-white">
                   Gestisci eventi
                 </a>
               </div>
