@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import PhoneInput from 'react-phone-input-2';
 
-const API_URL = 'https://api.uniquo.it';
+const GEOAPIFY_KEY =
+  process.env.NEXT_PUBLIC_GEOAPIFY_KEY;
 
 type Company = {
   id: string;
@@ -41,26 +42,35 @@ export default function CompaniesPage() {
   }, []);
 
   useEffect(() => {
-    if (address.length < 3) {
+  if (address.length < 3) {
+    setSuggestions([]);
+    return;
+  }
+
+  const timer = setTimeout(async () => {
+    try {
+      const res = await fetch(
+        `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
+          address,
+        )}&limit=5&lang=it&apiKey=${GEOAPIFY_KEY}`,
+      );
+
+      const data = await res.json();
+
+      const formatted =
+        data.features?.map((item: any) => ({
+          place_id: item.properties.place_id,
+          display_name: item.properties.formatted,
+        })) || [];
+
+      setSuggestions(formatted);
+    } catch {
       setSuggestions([]);
-      return;
     }
+  }, 400);
 
-    const timer = setTimeout(async () => {
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(address)}`,
-        );
-
-        const data = await res.json();
-        setSuggestions(data || []);
-      } catch {
-        setSuggestions([]);
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [address]);
+  return () => clearTimeout(timer);
+}, [address]);
 
   async function loadCompanies(currentToken?: string) {
     try {
