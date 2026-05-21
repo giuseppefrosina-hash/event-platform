@@ -24,3 +24,4 @@ import { StaffModule } from './staff/staff.module';
   ],
 })
 export class AppModule {}
+import { TicketsModule } from './tickets/tickets.module';
