@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PhoneInput from 'react-phone-input-2';
 
-const API_URL = "https://api.uniquo.it";
+const API_URL = 'https://api.uniquo.it';
 
 type Company = {
-  id: number;
+  id: string;
   name: string;
   email?: string;
   phone?: string;
@@ -13,51 +14,53 @@ type Company = {
   address?: string;
 };
 
+type AddressSuggestion = {
+  place_id: number;
+  display_name: string;
+};
+
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [token, setToken] = useState('');
   const [message, setMessage] = useState('');
-
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [vatNumber, setVatNumber] = useState('');
   const [address, setAddress] = useState('');
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
 
-  async function login() {
-    try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: loginEmail,
-          password: loginPassword,
-        }),
-      });
+  useEffect(() => {
+    const savedToken = localStorage.getItem('token');
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setMessage(data.message || 'Login failed');
-        return;
-      }
-
-      const jwtToken = data.access_token || data.token;
-
-      localStorage.setItem('token', jwtToken);
-      setToken(jwtToken);
-      setMessage('Login effettuato');
-
-      loadCompanies(jwtToken);
-    } catch {
-      setMessage('Errore login');
+    if (savedToken) {
+      setToken(savedToken);
+      loadCompanies(savedToken);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (address.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(address)}`,
+        );
+
+        const data = await res.json();
+        setSuggestions(data || []);
+      } catch {
+        setSuggestions([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [address]);
 
   async function loadCompanies(currentToken?: string) {
     try {
@@ -105,7 +108,7 @@ export default function CompaniesPage() {
         body: JSON.stringify({
           name,
           email,
-          phone,
+          phone: phone ? `+${phone}` : '',
           vatNumber,
           address,
         }),
@@ -123,6 +126,7 @@ export default function CompaniesPage() {
       setPhone('');
       setVatNumber('');
       setAddress('');
+      setSuggestions([]);
 
       setMessage('Azienda creata');
       loadCompanies(jwtToken);
@@ -131,21 +135,10 @@ export default function CompaniesPage() {
     }
   }
 
-  useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-
-    if (savedToken) {
-      setToken(savedToken);
-      loadCompanies(savedToken);
-    }
-  }, []);
-
   return (
     <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <h1 className="mb-4 text-6xl font-bold">
-          Companies CRM
-        </h1>
+        <h1 className="mb-4 text-6xl font-bold">Companies CRM</h1>
 
         <p className="mb-8 text-zinc-500">
           Gestione aziende collegate alla piattaforma eventi.
@@ -157,74 +150,43 @@ export default function CompaniesPage() {
           </div>
         )}
 
-        {!token && (
-          <section className="mb-10 rounded-[2rem] bg-white p-8 shadow-sm">
-            <h2 className="mb-6 text-2xl font-bold">
-              Login
-            </h2>
+        <div className="grid gap-8 lg:grid-cols-[420px_1fr]">
+          <section className="rounded-[2rem] bg-white p-8 shadow-sm">
+            <h2 className="mb-6 text-2xl font-bold">Nuova azienda</h2>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-4">
+              <input
+                placeholder="Nome azienda"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              />
+
               <input
                 placeholder="Email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                className="rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              />
+
+              <PhoneInput
+                country="it"
+                value={phone}
+                onChange={(value) => setPhone(value)}
+                inputClass="!w-full !h-[58px] !rounded-2xl !border !border-zinc-200 !bg-zinc-50 !pl-14 !text-base"
+                buttonClass="!rounded-l-2xl !border-zinc-200"
+                containerClass="!w-full"
+                placeholder="Telefono"
               />
 
               <input
-                placeholder="Password"
-                type="password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                className="rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+                placeholder="Partita IVA"
+                value={vatNumber}
+                onChange={(e) => setVatNumber(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
-              <button
-                onClick={login}
-                className="rounded-2xl bg-black px-6 py-4 font-semibold text-white"
-              >
-                Login
-              </button>
-            </div>
-          </section>
-        )}
-
-        {token && (
-          <div className="grid gap-8 lg:grid-cols-[420px_1fr]">
-            <section className="rounded-[2rem] bg-white p-8 shadow-sm">
-              <h2 className="mb-6 text-2xl font-bold">
-                Nuova azienda
-              </h2>
-
-              <div className="space-y-4">
-                <input
-                  placeholder="Nome azienda"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
-                />
-
-                <input
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
-                />
-
-                <input
-                  placeholder="Telefono"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
-                />
-
-                <input
-                  placeholder="Partita IVA"
-                  value={vatNumber}
-                  onChange={(e) => setVatNumber(e.target.value)}
-                  className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
-                />
-
+              <div className="relative">
                 <input
                   placeholder="Indirizzo"
                   value={address}
@@ -232,57 +194,71 @@ export default function CompaniesPage() {
                   className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
                 />
 
-                <button
-                  onClick={createCompany}
-                  className="w-full rounded-2xl bg-black px-6 py-4 font-semibold text-white"
-                >
-                  Crea azienda
-                </button>
-              </div>
-            </section>
-
-            <section>
-              <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-2xl font-bold">
-                  Lista aziende
-                </h2>
-
-                <button
-                  onClick={() => loadCompanies()}
-                  className="rounded-2xl bg-black px-5 py-3 text-white"
-                >
-                  Refresh
-                </button>
-              </div>
-
-              <div className="grid gap-5">
-                {companies.length === 0 ? (
-                  <div className="rounded-[2rem] bg-white p-10 text-center text-zinc-500 shadow-sm">
-                    Nessuna azienda trovata.
+                {suggestions.length > 0 && (
+                  <div className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-2xl border border-zinc-200 bg-white shadow-lg">
+                    {suggestions.map((item) => (
+                      <button
+                        key={item.place_id}
+                        type="button"
+                        onClick={() => {
+                          setAddress(item.display_name);
+                          setSuggestions([]);
+                        }}
+                        className="block w-full px-5 py-3 text-left text-sm hover:bg-zinc-100"
+                      >
+                        {item.display_name}
+                      </button>
+                    ))}
                   </div>
-                ) : (
-                  companies.map((company) => (
-                    <article
-                      key={company.id}
-                      className="rounded-[2rem] bg-white p-7 shadow-sm"
-                    >
-                      <h3 className="text-2xl font-bold">
-                        {company.name}
-                      </h3>
-
-                      <div className="mt-4 grid gap-2 text-zinc-500">
-                        <p>📧 {company.email || 'Email non inserita'}</p>
-                        <p>📞 {company.phone || 'Telefono non inserito'}</p>
-                        <p>🧾 {company.vatNumber || 'P.IVA non inserita'}</p>
-                        <p>📍 {company.address || 'Indirizzo non inserito'}</p>
-                      </div>
-                    </article>
-                  ))
                 )}
               </div>
-            </section>
-          </div>
-        )}
+
+              <button
+                onClick={createCompany}
+                className="w-full rounded-2xl bg-black px-6 py-4 font-semibold text-white"
+              >
+                Crea azienda
+              </button>
+            </div>
+          </section>
+
+          <section>
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Lista aziende</h2>
+
+              <button
+                onClick={() => loadCompanies()}
+                className="rounded-2xl bg-black px-5 py-3 text-white"
+              >
+                Refresh
+              </button>
+            </div>
+
+            <div className="grid gap-5">
+              {companies.length === 0 ? (
+                <div className="rounded-[2rem] bg-white p-10 text-center text-zinc-500 shadow-sm">
+                  Nessuna azienda trovata.
+                </div>
+              ) : (
+                companies.map((company) => (
+                  <article
+                    key={company.id}
+                    className="rounded-[2rem] bg-white p-7 shadow-sm"
+                  >
+                    <h3 className="text-2xl font-bold">{company.name}</h3>
+
+                    <div className="mt-4 grid gap-2 text-zinc-500">
+                      <p>📧 {company.email || 'Email non inserita'}</p>
+                      <p>📞 {company.phone || 'Telefono non inserito'}</p>
+                      <p>🧾 {company.vatNumber || 'P.IVA non inserita'}</p>
+                      <p>📍 {company.address || 'Indirizzo non inserito'}</p>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
       </div>
     </main>
   );
