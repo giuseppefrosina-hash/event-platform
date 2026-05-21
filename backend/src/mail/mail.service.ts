@@ -1,46 +1,42 @@
 import { Injectable } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class MailService {
-  private transporter;
-
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST,
-      port: Number(process.env.MAIL_PORT),
-      secure: false,
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
-      },
-    });
-  }
+  private resend = new Resend(
+    process.env.RESEND_API_KEY,
+  );
 
   async sendTicketEmail(data: {
     to: string;
     fullName: string;
-    eventTitle: string;
     qrCode: string;
+    eventTitle: string;
   }) {
-    return this.transporter.sendMail({
-      from: `"Uniquo" <${process.env.MAIL_FROM || process.env.MAIL_USER}>`,
-      to: data.to,
-      subject: `Il tuo ticket per ${data.eventTitle}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 24px;">
-          <h1>Il tuo ticket Uniquo</h1>
-          <p>Ciao ${data.fullName},</p>
-          <p>Il tuo biglietto per <strong>${data.eventTitle}</strong> è stato generato con successo.</p>
-          <p><strong>Codice QR:</strong></p>
-          <p style="font-size: 14px; background: #f4f4f4; padding: 16px; border-radius: 12px;">
-            ${data.qrCode}
-          </p>
-          <p>Presenta questo codice all'ingresso per effettuare il check-in.</p>
-          <br />
-          <p>Grazie,<br />Uniquo</p>
-        </div>
-      `,
-    });
+    try {
+      await this.resend.emails.send({
+        from:
+          process.env.MAIL_FROM ||
+          'no-reply@uniquo.it',
+        to: data.to,
+        subject: `Biglietto ${data.eventTitle}`,
+        html: `
+          <div style="font-family:Arial;padding:20px;">
+            <h1>🎟️ Ticket confermato</h1>
+            <p>Ciao ${data.fullName},</p>
+            <p>Il tuo ticket per <strong>${data.eventTitle}</strong> è stato creato.</p>
+            <p><strong>QR Code:</strong></p>
+            <div style="padding:12px;background:#f5f5f5;border-radius:12px;word-break:break-all;font-family:monospace;">
+              ${data.qrCode}
+            </div>
+            <p style="margin-top:20px;">Team Uniquo</p>
+          </div>
+        `,
+      });
+
+      console.log('Email inviata');
+    } catch (error) {
+      console.error('Email error:', error);
+    }
   }
 }

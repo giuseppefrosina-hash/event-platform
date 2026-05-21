@@ -40,12 +40,12 @@ export class TicketsService {
       },
     });
 
-    await this.mailService.sendTicketEmail(
-      ticket.email,
-      ticket.fullName,
-      ticket.qrCode,
-      ticket.event?.title || 'Evento',
-    );
+    await this.mailService.sendTicketEmail({
+      to: ticket.email,
+      fullName: ticket.fullName,
+      qrCode: ticket.qrCode,
+      eventTitle: ticket.event?.title || 'Evento',
+    });
 
     return ticket;
   }
