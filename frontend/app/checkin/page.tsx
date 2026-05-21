@@ -22,7 +22,7 @@ export default function CheckInPage() {
 
     try {
       const res = await fetch(
-        `${API_URL}/tickets/checkin/${finalCode}`,
+        API_URL + '/tickets/checkin/' + finalCode,
         {
           method: 'PATCH',
         },
@@ -39,7 +39,7 @@ export default function CheckInPage() {
       }
 
       setMessage(
-        `Check-in completato per ${data.fullName}`,
+        'Check-in completato per ' + data.fullName,
       );
 
       setQrCode('');
@@ -75,9 +75,7 @@ export default function CheckInPage() {
       );
     } catch {
       setScanning(false);
-      setMessage(
-        'Impossibile avviare la fotocamera',
-      );
+      setMessage('Impossibile avviare la fotocamera');
     }
   }
 
@@ -101,13 +99,14 @@ export default function CheckInPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#0b0b0f] text-white">
+    <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
       <div className="mx-auto max-w-4xl px-6 py-10">
         <div className="mb-10 flex items-center justify-between">
           <div>
             <p className="mb-2 text-sm uppercase tracking-[0.3em] text-zinc-500">
               QR Check-in
             </p>
+
             <h1 className="text-5xl font-bold">
               Validazione ticket
             </h1>
@@ -115,20 +114,20 @@ export default function CheckInPage() {
 
           <a
             href="/dashboard"
-            className="rounded-2xl bg-white px-5 py-3 font-semibold text-black"
+            className="rounded-2xl bg-black px-5 py-3 font-semibold text-white"
           >
             Dashboard
           </a>
         </div>
 
         {message && (
-          <div className="mb-8 rounded-2xl border border-white/10 bg-white/[0.06] p-5">
+          <div className="mb-8 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
             {message}
           </div>
         )}
 
-        <section className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-8">
-          <div className="mb-8 rounded-2xl bg-black/30 p-4">
+        <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 shadow-sm">
+          <div className="mb-8 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
             <div
               id="qr-reader"
               className="overflow-hidden rounded-2xl"
@@ -139,15 +138,13 @@ export default function CheckInPage() {
             <input
               placeholder="Inserisci QR code manualmente"
               value={qrCode}
-              onChange={(e) =>
-                setQrCode(e.target.value)
-              }
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-5 py-4 outline-none"
+              onChange={(e) => setQrCode(e.target.value)}
+              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
             />
 
             <button
               onClick={() => checkIn()}
-              className="rounded-2xl bg-white px-6 py-4 font-semibold text-black"
+              className="rounded-2xl bg-black px-6 py-4 font-semibold text-white"
             >
               Valida ticket
             </button>
