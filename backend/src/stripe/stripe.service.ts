@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+
 const Stripe = require('stripe');
 
 @Injectable()
@@ -40,8 +41,11 @@ export class StripeService {
 
         mode: 'payment',
 
-        success_url: 'https://google.com',
-        cancel_url: 'https://google.com',
+        success_url:
+          'https://app.uniquo.it/success',
+
+        cancel_url:
+          'https://app.uniquo.it/cancel',
       });
 
     return session.url;
