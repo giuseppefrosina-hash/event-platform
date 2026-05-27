@@ -317,11 +317,14 @@ export default function EventsPage() {
               />
 
               <input
-                placeholder="Prezzo"
-                value={price}
-                onChange={(e) =>
-                  setPrice(e.target.value)
-                }
+  type="number"
+  placeholder="Prezzo"
+  value={price}
+  onChange={(e) =>
+    setPrice(e.target.value)
+  }
+  className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+/>
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
