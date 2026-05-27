@@ -91,7 +91,7 @@ model Event {
 
   date     DateTime
   location String?
-  price    Float?
+  price    Float   @default(0)
 
   createdAt DateTime @default(now())
 
