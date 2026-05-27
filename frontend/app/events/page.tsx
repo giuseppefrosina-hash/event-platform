@@ -140,6 +140,10 @@ export default function EventsPage() {
         return;
       }
 
+      const numericPrice = parseFloat(
+        price || '0',
+      );
+
       const res = await fetch(
         `${API_URL}/events`,
         {
@@ -155,7 +159,12 @@ export default function EventsPage() {
             description,
             location,
             date,
-            price: Number(price || 0),
+            price:
+              Number.isNaN(
+                numericPrice,
+              )
+                ? 0
+                : numericPrice,
             image: imageUrl,
             companyId:
               companyId || undefined,
@@ -317,14 +326,12 @@ export default function EventsPage() {
               />
 
               <input
-  type="number"
-  placeholder="Prezzo"
-  value={price}
-  onChange={(e) =>
-    setPrice(e.target.value)
-  }
-  className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
-/>
+                type="number"
+                placeholder="Prezzo"
+                value={price}
+                onChange={(e) =>
+                  setPrice(e.target.value)
+                }
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
