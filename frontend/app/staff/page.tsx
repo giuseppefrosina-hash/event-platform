@@ -52,32 +52,64 @@ export default function StaffPage() {
     loadStaff();
   }, []);
 
-  const calculation = useMemo(() => {
-    const net = Number(agreedAmount || 0);
-    const withholding = Number(withholdingRate || 0);
-    const extraTax = Number(taxRate || 0);
+const calculation = useMemo(() => {
+  const amount = Number(agreedAmount || 0);
+  const withholding = Number(withholdingRate || 0);
+  const extraTax = Number(taxRate || 0);
 
-    let gross = net;
-    let withholdingAmount = 0;
-    let extraTaxAmount = 0;
+  let netAmount = amount;
+  let documentAmount = amount;
+  let taxAmount = 0;
+  let companyCost = amount;
 
+  if (
+    taxRegime === 'ritenuta_acconto' ||
+    taxRegime === 'collaborazione_occasionale'
+  ) {
     if (withholdingTax && withholding > 0) {
-      gross = net / (1 - withholding / 100);
-      withholdingAmount = gross - net;
+      documentAmount = amount / (1 - withholding / 100);
+      taxAmount = documentAmount - amount;
+      companyCost = documentAmount;
     }
+  }
 
-    if (extraTax > 0) {
-      extraTaxAmount = gross * (extraTax / 100);
-    }
+  if (taxRegime === 'piva_forfettaria') {
+    documentAmount = amount;
+    taxAmount = 0;
+    companyCost = amount;
+  }
 
-    const companyCost = gross + extraTaxAmount;
+  if (
+    taxRegime === 'piva_ordinaria' ||
+    taxRegime === 'agenzia'
+  ) {
+    documentAmount = amount;
+    taxAmount = amount * (extraTax / 100);
+    companyCost = documentAmount + taxAmount;
+  }
 
-    return {
-      netAmount: Number(net.toFixed(2)),
-      grossAmount: Number(companyCost.toFixed(2)),
-      taxAmount: Number((withholdingAmount + extraTaxAmount).toFixed(2)),
-    };
-  }, [agreedAmount, withholdingRate, taxRate, withholdingTax]);
+  if (
+    taxRegime === 'cooperativa' ||
+    taxRegime === 'enpals'
+  ) {
+    documentAmount = amount;
+    taxAmount = amount * (extraTax / 100);
+    companyCost = documentAmount + taxAmount;
+  }
+
+  return {
+    netAmount: Number(netAmount.toFixed(2)),
+    documentAmount: Number(documentAmount.toFixed(2)),
+    taxAmount: Number(taxAmount.toFixed(2)),
+    grossAmount: Number(companyCost.toFixed(2)),
+  };
+}, [
+  agreedAmount,
+  withholdingRate,
+  taxRate,
+  withholdingTax,
+  taxRegime,
+]);
 
   async function loadStaff() {
     try {
@@ -260,11 +292,12 @@ export default function StaffPage() {
               />
 
               <div className="rounded-3xl bg-black p-6 text-white">
-                <p>Netto collaboratore: € {calculation.netAmount}</p>
-                <p>Trattenute / tasse: € {calculation.taxAmount}</p>
-                <p className="mt-2 text-xl font-bold">
-                  Costo azienda: € {calculation.grossAmount}
-                </p>
+               <p>Netto collaboratore: € {calculation.netAmount}</p>
+<p>Documento / fattura: € {calculation.documentAmount}</p>
+<p>Trattenute / IVA / contributi: € {calculation.taxAmount}</p>
+<p className="mt-2 text-xl font-bold">
+  Costo azienda: € {calculation.grossAmount}
+</p>
               </div>
 
               <div className="space-y-3 rounded-3xl bg-zinc-50 p-5 text-sm">
