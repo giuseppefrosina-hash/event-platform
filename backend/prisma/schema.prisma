@@ -79,9 +79,19 @@ model Staff {
   fiscalCode String?
   iban       String?
   role       String?
-  createdAt  DateTime @default(now())
-}
 
+  vatNumber String?
+  taxRegime String?
+  withholdingTax Boolean @default(false)
+  agreedAmount Float?
+  withholdingRate Float?
+  taxRate Float?
+  grossAmount Float?
+  taxAmount Float?
+  netAmount Float?
+
+  createdAt DateTime @default(now())
+}
 model Event {
   id          String  @id @default(cuid())
   title       String
