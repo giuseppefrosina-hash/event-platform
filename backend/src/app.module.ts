@@ -13,6 +13,7 @@ import { StaffModule } from './staff/staff.module';
 import { CloudinaryModule } from './upload/cloudinary/cloudinary.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { MailModule } from './mail/mail.module';
+import { EventCostsModule } from './event-costs/event-costs.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MailModule } from './mail/mail.module';
     CloudinaryModule,
     TicketsModule,
     MailModule,
+    EventCostsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
