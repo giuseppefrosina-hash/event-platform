@@ -7,19 +7,19 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class EventsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+  ) {}
 
   async findAll() {
-    try {
-      return await this.prisma.event.findMany({
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
-    } catch (error) {
-      console.log(error);
-      return [];
-    }
+    return this.prisma.event.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        company: true,
+      },
+    });
   }
 
   async findOne(id: string) {
@@ -27,37 +27,45 @@ export class EventsService {
       where: {
         id,
       },
+      include: {
+        company: true,
+      },
     });
   }
 
   async create(data: any) {
-    try {
-      return await this.prisma.event.create({
-        data: {
-          title: data.title,
-          description: data.description,
-          location: data.location,
-          image:
-            data.image ||
-            'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
-          date: new Date(data.date),
-        },
-      });
-    } catch (error) {
-      console.log(error);
+    console.log('CREATE EVENT BODY:', data);
+console.log('CREATE EVENT PRICE:', data.price);
 
-      return {
-        error: 'Cannot create event',
-      };
-    }
+    const priceValue = Number(data.price);
+
+    return this.prisma.event.create({
+      data: {
+        title: data.title,
+        description: data.description || null,
+        location: data.location || null,
+        image:
+          data.image ||
+          'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
+        date: new Date(data.date),
+        price: Number.isNaN(priceValue)
+          ? 0
+          : priceValue,
+        companyId: data.companyId || null,
+      },
+      include: {
+        company: true,
+      },
+    });
   }
 
   async delete(id: string) {
-    const event = await this.prisma.event.findUnique({
-      where: {
-        id,
-      },
-    });
+    const event =
+      await this.prisma.event.findUnique({
+        where: {
+          id,
+        },
+      });
 
     if (!event) {
       throw new NotFoundException(
