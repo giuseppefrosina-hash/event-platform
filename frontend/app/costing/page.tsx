@@ -324,63 +324,70 @@ export default function CostingPage() {
                   Nessun costo inserito.
                 </div>
               ) : (
-                filteredCosts.map((cost) => (
-                  <article
-                    key={cost.id}
-                    className="rounded-[2rem] border border-zinc-200 bg-white p-7 shadow-sm"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="mb-2 text-sm uppercase tracking-[0.2em] text-zinc-400">
-                          {cost.category}
-                        </p>
+              filteredCosts.map((cost) => (
+  <details
+    key={cost.id}
+    className="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-sm"
+  >
+    <summary className="flex cursor-pointer items-center justify-between gap-4">
+      <div>
+        <p className="text-sm uppercase tracking-[0.2em] text-zinc-400">
+          {cost.category}
+        </p>
 
-                        <h3 className="text-2xl font-bold">
-                          {cost.description}
-                        </h3>
+        <h3 className="mt-1 text-xl font-bold">
+          {cost.description}
+        </h3>
+      </div>
 
-                        <div className="mt-4 grid gap-2 text-zinc-600">
-                          <p>
-                            Evento:{' '}
-                            {cost.event?.title ||
-                              'Evento non disponibile'}
-                          </p>
+      <div className="text-right">
+        <p className="text-sm text-zinc-500">
+          Totale
+        </p>
 
-                          <p>
-                            Fornitore:{' '}
-                            {cost.supplier ||
-                              'Non indicato'}
-                          </p>
+        <p className="text-xl font-bold">
+          € {Number(cost.totalCost || 0).toFixed(2)}
+        </p>
+      </div>
+    </summary>
 
-                          <p>
-                            Quantità: {cost.quantity}
-                          </p>
+    <div className="mt-6 border-t border-zinc-100 pt-5">
+      <div className="grid gap-2 text-zinc-600">
+        <p>
+          Evento:{' '}
+          {cost.event?.title ||
+            'Evento non disponibile'}
+        </p>
 
-                          <p>
-                            Costo unitario: €{' '}
-                            {Number(cost.unitCost || 0).toFixed(2)}
-                          </p>
+        <p>
+          Fornitore:{' '}
+          {cost.supplier || 'Non indicato'}
+        </p>
 
-                          <p>
-                            IVA: {cost.vat}%
-                          </p>
+        <p>Quantità: {cost.quantity}</p>
 
-                          <p className="font-bold text-black">
-                            Totale: €{' '}
-                            {Number(cost.totalCost || 0).toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
+        <p>
+          Costo unitario: €{' '}
+          {Number(cost.unitCost || 0).toFixed(2)}
+        </p>
 
-                      <button
-                        onClick={() => deleteCost(cost.id)}
-                        className="rounded-xl bg-red-100 px-4 py-2 text-red-600"
-                      >
-                        Elimina
-                      </button>
-                    </div>
-                  </article>
-                ))
+        <p>IVA: {cost.vat}%</p>
+
+        <p className="font-bold text-black">
+          Totale costo: €{' '}
+          {Number(cost.totalCost || 0).toFixed(2)}
+        </p>
+      </div>
+
+      <button
+        onClick={() => deleteCost(cost.id)}
+        className="mt-5 rounded-xl bg-red-100 px-4 py-2 text-red-600"
+      >
+        Elimina
+      </button>
+    </div>
+  </details>
+))
               )}
             </div>
           </section>
