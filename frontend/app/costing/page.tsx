@@ -35,42 +35,35 @@ export default function CostingPage() {
   const [unitCost, setUnitCost] = useState('');
   const [vat, setVat] = useState('22');
 
+  const [editingId, setEditingId] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editSupplier, setEditSupplier] = useState('');
+  const [editQuantity, setEditQuantity] = useState('');
+  const [editUnitCost, setEditUnitCost] = useState('');
+  const [editVat, setEditVat] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+
   useEffect(() => {
     loadEvents();
     loadCosts();
   }, []);
 
-  const selectedEvent = events.find(
-    (event) => event.id === eventId,
-  );
+  const selectedEvent = events.find((event) => event.id === eventId);
 
   const previewTotal = useMemo(() => {
     const q = Number(quantity || 1);
     const u = Number(unitCost || 0);
     const v = Number(vat || 0);
-
     const subtotal = q * u;
     const total = subtotal + subtotal * (v / 100);
 
     return Number(total.toFixed(2));
   }, [quantity, unitCost, vat]);
 
-  const totalCosts = useMemo(() => {
-    return costs.reduce(
-      (sum, cost) => sum + Number(cost.totalCost || 0),
-      0,
-    );
-  }, [costs]);
-
-  const expectedRevenue = Number(selectedEvent?.price || 0);
-
-  const margin = expectedRevenue - totalCosts;
-
   async function loadEvents() {
     try {
       const res = await fetch(API_URL + '/events');
       const data = await res.json();
-
       setEvents(Array.isArray(data) ? data : []);
     } catch {
       setMessage('Errore caricamento eventi');
@@ -81,7 +74,6 @@ export default function CostingPage() {
     try {
       const res = await fetch(API_URL + '/event-costs');
       const data = await res.json();
-
       setCosts(Array.isArray(data) ? data : []);
     } catch {
       setMessage('Errore caricamento costi');
@@ -97,9 +89,7 @@ export default function CostingPage() {
     try {
       const res = await fetch(API_URL + '/event-costs', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           eventId,
           category,
@@ -142,6 +132,44 @@ export default function CostingPage() {
     }
   }
 
+  function startEdit(cost: EventCost) {
+    setEditingId(cost.id);
+    setEditCategory(cost.category);
+    setEditDescription(cost.description);
+    setEditSupplier(cost.supplier || '');
+    setEditQuantity(String(cost.quantity));
+    setEditUnitCost(String(cost.unitCost));
+    setEditVat(String(cost.vat));
+  }
+
+  async function saveEdit() {
+    try {
+      const res = await fetch(API_URL + '/event-costs/' + editingId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: editCategory,
+          description: editDescription,
+          supplier: editSupplier,
+          quantity: Number(editQuantity || 1),
+          unitCost: Number(editUnitCost || 0),
+          vat: Number(editVat || 0),
+        }),
+      });
+
+      if (!res.ok) {
+        setMessage('Errore aggiornamento costo');
+        return;
+      }
+
+      setEditingId('');
+      setMessage('Costo aggiornato');
+      loadCosts();
+    } catch {
+      setMessage('Errore aggiornamento costo');
+    }
+  }
+
   const filteredCosts = eventId
     ? costs.filter((cost) => cost.event?.id === eventId)
     : costs;
@@ -162,10 +190,7 @@ export default function CostingPage() {
             <p className="mb-2 text-sm uppercase tracking-[0.3em] text-zinc-500">
               Event Costing
             </p>
-
-            <h1 className="text-5xl font-bold">
-              Costing evento
-            </h1>
+            <h1 className="text-5xl font-bold">Costing evento</h1>
           </div>
 
           <a
@@ -211,9 +236,7 @@ export default function CostingPage() {
 
         <div className="grid gap-8 lg:grid-cols-[420px_1fr]">
           <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-6 text-2xl font-bold">
-              Nuovo costo
-            </h2>
+            <h2 className="mb-6 text-2xl font-bold">Nuovo costo</h2>
 
             <div className="space-y-4">
               <select
@@ -222,7 +245,6 @@ export default function CostingPage() {
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               >
                 <option value="">Seleziona evento</option>
-
                 {events.map((event) => (
                   <option key={event.id} value={event.id}>
                     {event.title}
@@ -289,7 +311,6 @@ export default function CostingPage() {
                 <p className="text-sm text-zinc-400">
                   Totale costo previsto
                 </p>
-
                 <h3 className="mt-2 text-3xl font-bold">
                   € {previewTotal.toFixed(2)}
                 </h3>
@@ -306,9 +327,7 @@ export default function CostingPage() {
 
           <section>
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">
-                Lista costi
-              </h2>
+              <h2 className="text-2xl font-bold">Lista costi</h2>
 
               <button
                 onClick={loadCosts}
@@ -324,70 +343,156 @@ export default function CostingPage() {
                   Nessun costo inserito.
                 </div>
               ) : (
-              filteredCosts.map((cost) => (
-  <details
-    key={cost.id}
-    className="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-sm"
-  >
-    <summary className="flex cursor-pointer items-center justify-between gap-4">
-      <div>
-        <p className="text-sm uppercase tracking-[0.2em] text-zinc-400">
-          {cost.category}
-        </p>
+                filteredCosts.map((cost) => (
+                  <details
+                    key={cost.id}
+                    className="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-sm"
+                  >
+                    <summary className="flex cursor-pointer items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm uppercase tracking-[0.2em] text-zinc-400">
+                          {cost.category}
+                        </p>
 
-        <h3 className="mt-1 text-xl font-bold">
-          {cost.description}
-        </h3>
-      </div>
+                        <h3 className="mt-1 text-xl font-bold">
+                          {cost.description}
+                        </h3>
+                      </div>
 
-      <div className="text-right">
-        <p className="text-sm text-zinc-500">
-          Totale
-        </p>
+                      <div className="text-right">
+                        <p className="text-sm text-zinc-500">Totale</p>
+                        <p className="text-xl font-bold">
+                          € {Number(cost.totalCost || 0).toFixed(2)}
+                        </p>
+                      </div>
+                    </summary>
 
-        <p className="text-xl font-bold">
-          € {Number(cost.totalCost || 0).toFixed(2)}
-        </p>
-      </div>
-    </summary>
+                    <div className="mt-6 border-t border-zinc-100 pt-5">
+                      <div className="grid gap-2 text-zinc-600">
+                        <p>
+                          Evento:{' '}
+                          {cost.event?.title || 'Evento non disponibile'}
+                        </p>
+                        <p>
+                          Fornitore: {cost.supplier || 'Non indicato'}
+                        </p>
+                        <p>Quantità: {cost.quantity}</p>
+                        <p>
+                          Costo unitario: €{' '}
+                          {Number(cost.unitCost || 0).toFixed(2)}
+                        </p>
+                        <p>IVA: {cost.vat}%</p>
+                        <p className="font-bold text-black">
+                          Totale costo: €{' '}
+                          {Number(cost.totalCost || 0).toFixed(2)}
+                        </p>
+                      </div>
 
-    <div className="mt-6 border-t border-zinc-100 pt-5">
-      <div className="grid gap-2 text-zinc-600">
-        <p>
-          Evento:{' '}
-          {cost.event?.title ||
-            'Evento non disponibile'}
-        </p>
+                      <div className="mt-5 flex gap-3">
+                        <button
+                          onClick={() => startEdit(cost)}
+                          className="rounded-xl bg-blue-100 px-4 py-2 text-blue-600"
+                        >
+                          Modifica
+                        </button>
 
-        <p>
-          Fornitore:{' '}
-          {cost.supplier || 'Non indicato'}
-        </p>
+                        <button
+                          onClick={() => deleteCost(cost.id)}
+                          className="rounded-xl bg-red-100 px-4 py-2 text-red-600"
+                        >
+                          Elimina
+                        </button>
+                      </div>
 
-        <p>Quantità: {cost.quantity}</p>
+                      {editingId === cost.id && (
+                        <div className="mt-6 rounded-2xl bg-zinc-50 p-5">
+                          <div className="grid gap-3">
+                            <select
+                              value={editCategory}
+                              onChange={(e) =>
+                                setEditCategory(e.target.value)
+                              }
+                              className="rounded-xl border border-zinc-200 px-4 py-3"
+                            >
+                              <option value="Staff">Staff</option>
+                              <option value="Fornitori">Fornitori</option>
+                              <option value="Location">Location</option>
+                              <option value="Catering">Catering</option>
+                              <option value="Audio/Luci">Audio/Luci</option>
+                              <option value="Viaggi">Viaggi</option>
+                              <option value="Hotel">Hotel</option>
+                              <option value="Materiali">Materiali</option>
+                              <option value="Marketing">Marketing</option>
+                              <option value="Altro">Altro</option>
+                            </select>
 
-        <p>
-          Costo unitario: €{' '}
-          {Number(cost.unitCost || 0).toFixed(2)}
-        </p>
+                            <input
+                              value={editDescription}
+                              onChange={(e) =>
+                                setEditDescription(e.target.value)
+                              }
+                              placeholder="Descrizione"
+                              className="rounded-xl border border-zinc-200 px-4 py-3"
+                            />
 
-        <p>IVA: {cost.vat}%</p>
+                            <input
+                              value={editSupplier}
+                              onChange={(e) =>
+                                setEditSupplier(e.target.value)
+                              }
+                              placeholder="Fornitore"
+                              className="rounded-xl border border-zinc-200 px-4 py-3"
+                            />
 
-        <p className="font-bold text-black">
-          Totale costo: €{' '}
-          {Number(cost.totalCost || 0).toFixed(2)}
-        </p>
-      </div>
+                            <input
+                              type="number"
+                              value={editQuantity}
+                              onChange={(e) =>
+                                setEditQuantity(e.target.value)
+                              }
+                              placeholder="Quantità"
+                              className="rounded-xl border border-zinc-200 px-4 py-3"
+                            />
 
-      <button
-        onClick={() => deleteCost(cost.id)}
-        className="mt-5 rounded-xl bg-red-100 px-4 py-2 text-red-600"
-      >
-        Elimina
-      </button>
-    </div>
-  </details>
-))
+                            <input
+                              type="number"
+                              value={editUnitCost}
+                              onChange={(e) =>
+                                setEditUnitCost(e.target.value)
+                              }
+                              placeholder="Costo unitario"
+                              className="rounded-xl border border-zinc-200 px-4 py-3"
+                            />
+
+                            <input
+                              type="number"
+                              value={editVat}
+                              onChange={(e) => setEditVat(e.target.value)}
+                              placeholder="IVA"
+                              className="rounded-xl border border-zinc-200 px-4 py-3"
+                            />
+
+                            <div className="flex gap-3">
+                              <button
+                                onClick={saveEdit}
+                                className="rounded-xl bg-black px-5 py-3 text-white"
+                              >
+                                Salva modifiche
+                              </button>
+
+                              <button
+                                onClick={() => setEditingId('')}
+                                className="rounded-xl bg-zinc-200 px-5 py-3"
+                              >
+                                Annulla
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </details>
+                ))
               )}
             </div>
           </section>
