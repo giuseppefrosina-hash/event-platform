@@ -62,7 +62,9 @@ export default function QuotesPage() {
 
   async function createQuote() {
     if (!eventId || !quoteNumber || !clientName || !amount) {
-      setMessage('Evento, numero preventivo, cliente e importo sono obbligatori');
+      setMessage(
+        'Evento, numero preventivo, cliente e importo sono obbligatori',
+      );
       return;
     }
 
@@ -149,7 +151,10 @@ export default function QuotesPage() {
                 <option value="">Seleziona evento</option>
 
                 {events.map((event) => (
-                  <option key={event.id} value={event.id}>
+                  <option
+                    key={event.id}
+                    value={event.id}
+                  >
                     {event.title}
                   </option>
                 ))}
@@ -197,7 +202,10 @@ export default function QuotesPage() {
               </select>
 
               <div className="rounded-3xl bg-black p-6 text-white">
-                <p>IVA: € {totals.vatAmount.toFixed(2)}</p>
+                <p>
+                  IVA: € {totals.vatAmount.toFixed(2)}
+                </p>
+
                 <p className="mt-2 text-2xl font-bold">
                   Totale: € {totals.totalAmount.toFixed(2)}
                 </p>
@@ -248,25 +256,47 @@ export default function QuotesPage() {
                         </h3>
 
                         <div className="mt-4 grid gap-2 text-zinc-600">
-                          <p>Cliente: {quote.clientName}</p>
+                          <p>
+                            Cliente: {quote.clientName}
+                          </p>
+
                           <p>
                             Evento:{' '}
                             {quote.event?.title ||
                               'Evento non disponibile'}
                           </p>
-                          <p>IVA: € {Number(quote.vatAmount || 0).toFixed(2)}</p>
+
+                          <p>
+                            IVA: €{' '}
+                            {Number(
+                              quote.vatAmount || 0,
+                            ).toFixed(2)}
+                          </p>
+
                           <p className="font-bold text-black">
-                            Totale: € {Number(quote.totalAmount || 0).toFixed(2)}
+                            Totale: €{' '}
+                            {Number(
+                              quote.totalAmount || 0,
+                            ).toFixed(2)}
                           </p>
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => deleteQuote(quote.id)}
-                        className="rounded-xl bg-red-100 px-4 py-2 text-red-600"
-                      >
-                        Elimina
-                      </button>
+                      <div className="flex flex-col gap-3">
+                        <a
+                          href={`/quotes/${quote.id}`}
+                          className="rounded-xl bg-black px-4 py-2 text-center text-white"
+                        >
+                          Scarica PDF
+                        </a>
+
+                        <button
+                          onClick={() => deleteQuote(quote.id)}
+                          className="rounded-xl bg-red-100 px-4 py-2 text-red-600"
+                        >
+                          Elimina
+                        </button>
+                      </div>
                     </div>
                   </article>
                 ))
