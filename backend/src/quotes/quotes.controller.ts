@@ -20,13 +20,29 @@ export class QuotesController {
     return this.quotesService.create(body);
   }
 
+  @Post('generate')
+  generate(
+    @Body()
+    body: {
+      eventId: string;
+      markup: number;
+    },
+  ) {
+    return this.quotesService.generateFromEvent(
+      body.eventId,
+      Number(body.markup || 0),
+    );
+  }
+
   @Get()
   findAll() {
     return this.quotesService.findAll();
   }
 
   @Get('event/:eventId')
-  findByEvent(@Param('eventId') eventId: string) {
+  findByEvent(
+    @Param('eventId') eventId: string,
+  ) {
     return this.quotesService.findByEvent(eventId);
   }
 
