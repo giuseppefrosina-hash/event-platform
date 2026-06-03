@@ -82,28 +82,108 @@ export default function DashboardPage() {
         <aside className="w-72 border-r border-zinc-200 bg-white p-6 shadow-sm">
           <h1 className="mb-10 text-2xl font-bold">Uniquo</h1>
 
-          <nav className="space-y-3 text-zinc-500">
-            {menuItems.map(([label, href]) => (
-              <a
-                key={href}
-                href={href}
-                className={`block rounded-xl px-4 py-3 ${
-                  href === '/dashboard'
-                    ? 'bg-black text-white'
-                    : 'hover:bg-zinc-100'
-                }`}
-              >
-                {label}
-              </a>
-            ))}
+<nav className="space-y-6 text-zinc-500">
 
-            <button
-              onClick={logout}
-              className="mt-8 block w-full rounded-xl bg-red-500/10 px-4 py-3 text-left text-red-500 hover:bg-red-500/20"
-            >
-              Logout
-            </button>
-          </nav>
+  <div>
+    <p className="mb-2 px-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
+      Dashboard
+    </p>
+
+    <a
+      className="block rounded-xl bg-black px-4 py-3 text-white"
+      href="/dashboard"
+    >
+      Dashboard
+    </a>
+  </div>
+
+  <div>
+    <p className="mb-2 px-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
+      Eventi
+    </p>
+
+    <a
+      className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
+      href="/events"
+    >
+      Eventi
+    </a>
+
+    <a
+      className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
+      href="/tickets"
+    >
+      Ticket
+    </a>
+
+    <a
+      className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
+      href="/checkin"
+    >
+      Check-in QR
+    </a>
+  </div>
+
+  <div>
+    <p className="mb-2 px-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
+      Operativo
+    </p>
+
+    <a
+      className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
+      href="/staff"
+    >
+      Staff
+    </a>
+
+    <a
+      className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
+      href="/suppliers"
+    >
+      Fornitori
+    </a>
+  </div>
+
+  <div>
+    <p className="mb-2 px-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
+      Amministrazione
+    </p>
+
+    <a
+      className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
+      href="/costing"
+    >
+      Costing
+    </a>
+
+    <a
+      className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
+      href="/quotes"
+    >
+      Preventivi
+    </a>
+  </div>
+
+  <div>
+    <p className="mb-2 px-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
+      Aziende
+    </p>
+
+    <a
+      className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
+      href="/companies"
+    >
+      Aziende
+    </a>
+  </div>
+
+  <button
+    onClick={logout}
+    className="mt-8 block w-full rounded-xl bg-red-500/10 px-4 py-3 text-left text-red-500 hover:bg-red-500/20"
+  >
+    Logout
+  </button>
+</nav>
         </aside>
 
         <section className="flex-1 p-10">
