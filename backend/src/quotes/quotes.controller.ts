@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
 } from '@nestjs/common';
 
@@ -44,6 +45,14 @@ export class QuotesController {
     @Param('eventId') eventId: string,
   ) {
     return this.quotesService.findByEvent(eventId);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() body: any,
+  ) {
+    return this.quotesService.update(id, body);
   }
 
   @Delete(':id')

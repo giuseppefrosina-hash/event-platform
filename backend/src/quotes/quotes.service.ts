@@ -11,16 +11,26 @@ export class QuotesService {
     clientName: string;
     totalAmount: number;
     vatAmount: number;
+    paidAmount?: number;
     status: string;
   }) {
+    const totalAmount = Number(data.totalAmount || 0);
+    const paidAmount = Number(data.paidAmount || 0);
+    const remainingAmount = totalAmount - paidAmount;
+
     return this.prisma.quote.create({
       data: {
         eventId: data.eventId,
         quoteNumber: data.quoteNumber,
         clientName: data.clientName,
-        totalAmount: Number(data.totalAmount || 0),
+        totalAmount,
         vatAmount: Number(data.vatAmount || 0),
-        status: data.status || 'draft',
+        paidAmount,
+        remainingAmount,
+        status:
+          remainingAmount <= 0 && totalAmount > 0
+            ? 'paid'
+            : data.status || 'draft',
       },
       include: {
         event: true,
@@ -53,31 +63,77 @@ export class QuotesService {
     });
   }
 
-  async generateFromEvent(
-    eventId: string,
-    markup: number,
+  async update(
+    id: string,
+    data: {
+      clientName?: string;
+      totalAmount?: number;
+      vatAmount?: number;
+      paidAmount?: number;
+      status?: string;
+    },
   ) {
-    const costs =
-      await this.prisma.eventCost.findMany({
-        where: {
-          eventId,
-        },
-      });
+    const current = await this.prisma.quote.findUnique({
+      where: { id },
+    });
 
-    const event =
-      await this.prisma.event.findUnique({
-        where: {
-          id: eventId,
-        },
-      });
+    if (!current) {
+      throw new Error('Preventivo non trovato');
+    }
+
+    const totalAmount =
+      data.totalAmount !== undefined
+        ? Number(data.totalAmount)
+        : Number(current.totalAmount || 0);
+
+    const paidAmount =
+      data.paidAmount !== undefined
+        ? Number(data.paidAmount)
+        : Number(current.paidAmount || 0);
+
+    const remainingAmount = totalAmount - paidAmount;
+
+    return this.prisma.quote.update({
+      where: { id },
+      data: {
+        clientName: data.clientName ?? current.clientName,
+        totalAmount,
+        vatAmount:
+          data.vatAmount !== undefined
+            ? Number(data.vatAmount)
+            : Number(current.vatAmount || 0),
+        paidAmount,
+        remainingAmount,
+        status:
+          remainingAmount <= 0 && totalAmount > 0
+            ? 'paid'
+            : data.status ?? current.status,
+      },
+      include: {
+        event: true,
+      },
+    });
+  }
+
+  async generateFromEvent(eventId: string, markup: number) {
+    const costs = await this.prisma.eventCost.findMany({
+      where: {
+        eventId,
+      },
+    });
+
+    const event = await this.prisma.event.findUnique({
+      where: {
+        id: eventId,
+      },
+    });
 
     if (!event) {
       throw new Error('Evento non trovato');
     }
 
     const totalCosts = costs.reduce(
-      (sum, cost) =>
-        sum + Number(cost.totalCost || 0),
+      (sum, cost) => sum + Number(cost.totalCost || 0),
       0,
     );
 
@@ -93,6 +149,8 @@ export class QuotesService {
         clientName: event.title,
         totalAmount,
         vatAmount,
+        paidAmount: 0,
+        remainingAmount: totalAmount,
         status: 'draft',
       },
       include: {
