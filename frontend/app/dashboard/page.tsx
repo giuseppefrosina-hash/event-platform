@@ -64,6 +64,18 @@ export default function DashboardPage() {
     window.location.href = '/';
   }
 
+  const menuItems = [
+    ['Dashboard', '/dashboard'],
+    ['Eventi', '/events'],
+    ['Aziende', '/companies'],
+    ['Ticket', '/tickets'],
+    ['Check-in QR', '/checkin'],
+    ['Staff', '/staff'],
+    ['Fornitori', '/suppliers'],
+    ['Costing', '/costing'],
+    ['Preventivi', '/quotes'],
+  ];
+
   return (
     <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
       <div className="flex min-h-screen">
@@ -71,21 +83,19 @@ export default function DashboardPage() {
           <h1 className="mb-10 text-2xl font-bold">Uniquo</h1>
 
           <nav className="space-y-3 text-zinc-500">
-            <a className="block rounded-xl bg-black px-4 py-3 text-white" href="/dashboard">
-              Dashboard
-            </a>
-            <a className="block rounded-xl px-4 py-3 hover:bg-zinc-100" href="/events">
-              Eventi
-            </a>
-            <a className="block rounded-xl px-4 py-3 hover:bg-zinc-100" href="/companies">
-              Aziende
-            </a>
-            <a className="block rounded-xl px-4 py-3 hover:bg-zinc-100" href="/tickets">
-              Ticket
-            </a>
-            <a className="block rounded-xl px-4 py-3 hover:bg-zinc-100" href="/checkin">
-              Check-in QR
-            </a>
+            {menuItems.map(([label, href]) => (
+              <a
+                key={href}
+                href={href}
+                className={`block rounded-xl px-4 py-3 ${
+                  href === '/dashboard'
+                    ? 'bg-black text-white'
+                    : 'hover:bg-zinc-100'
+                }`}
+              >
+                {label}
+              </a>
+            ))}
 
             <button
               onClick={logout}
@@ -110,7 +120,10 @@ export default function DashboardPage() {
               ['Ticket', loading ? '...' : String(ticketsCount)],
               ['Revenue', loading ? '...' : '€' + revenue],
             ].map(([label, value]) => (
-              <div key={label} className="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-sm">
+              <div
+                key={label}
+                className="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-sm"
+              >
                 <p className="mb-3 text-zinc-500">{label}</p>
                 <h3 className="text-4xl font-bold">{value}</h3>
               </div>
@@ -122,11 +135,32 @@ export default function DashboardPage() {
               <h3 className="mb-4 text-2xl font-bold">Azioni rapide</h3>
 
               <div className="grid gap-4">
-                <a href="/companies" className="rounded-2xl bg-black px-5 py-4 font-semibold text-white">
-                  Gestisci aziende
-                </a>
-                <a href="/events" className="rounded-2xl bg-zinc-100 px-5 py-4 font-semibold text-black">
+                <a
+                  href="/events"
+                  className="rounded-2xl bg-black px-5 py-4 font-semibold text-white"
+                >
                   Gestisci eventi
+                </a>
+
+                <a
+                  href="/costing"
+                  className="rounded-2xl bg-zinc-100 px-5 py-4 font-semibold text-black"
+                >
+                  Costing evento
+                </a>
+
+                <a
+                  href="/staff"
+                  className="rounded-2xl bg-zinc-100 px-5 py-4 font-semibold text-black"
+                >
+                  Gestisci staff
+                </a>
+
+                <a
+                  href="/suppliers"
+                  className="rounded-2xl bg-zinc-100 px-5 py-4 font-semibold text-black"
+                >
+                  Gestisci fornitori
                 </a>
               </div>
             </div>
@@ -134,9 +168,15 @@ export default function DashboardPage() {
             <div className="rounded-[2rem] border border-zinc-200 bg-white p-8 shadow-sm">
               <h3 className="mb-6 text-2xl font-bold">Analytics</h3>
 
-              <p className="mb-3 text-zinc-500">Ticket venduti: {ticketsCount}</p>
-              <p className="mb-3 text-zinc-500">Revenue: €{revenue}</p>
-              <p className="text-zinc-500">Eventi attivi: {eventsCount}</p>
+              <p className="mb-3 text-zinc-500">
+                Ticket venduti: {ticketsCount}
+              </p>
+              <p className="mb-3 text-zinc-500">
+                Revenue: €{revenue}
+              </p>
+              <p className="text-zinc-500">
+                Eventi attivi: {eventsCount}
+              </p>
             </div>
           </div>
         </section>
