@@ -82,13 +82,24 @@ model Staff {
 
   vatNumber String?
   taxRegime String?
-  withholdingTax Boolean @default(false)
-  agreedAmount Float?
+
+  withholdingTax  Boolean @default(false)
+  agreedAmount    Float?
   withholdingRate Float?
-  taxRate Float?
+  taxRate         Float?
+  vatRate         Float?
+
   grossAmount Float?
-  taxAmount Float?
-  netAmount Float?
+  taxAmount   Float?
+  vatAmount   Float?
+  netAmount   Float?
+  companyCost Float?
+
+  acceptedTerms           Boolean @default(false)
+  acceptedPrivacy         Boolean @default(false)
+  acceptedDressCode       Boolean @default(false)
+  acceptedConfidentiality Boolean @default(false)
+  acceptedAt              DateTime?
 
   createdAt DateTime @default(now())
 }
