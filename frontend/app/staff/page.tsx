@@ -19,9 +19,16 @@ type Staff = {
   agreedAmount?: number;
   withholdingRate?: number;
   taxRate?: number;
+  vatRate?: number;
   grossAmount?: number;
   taxAmount?: number;
+  vatAmount?: number;
   netAmount?: number;
+  companyCost?: number;
+  acceptedTerms?: boolean;
+  acceptedPrivacy?: boolean;
+  acceptedDressCode?: boolean;
+  acceptedConfidentiality?: boolean;
 };
 
 export default function StaffPage() {
@@ -42,8 +49,9 @@ export default function StaffPage() {
   const [agreedAmount, setAgreedAmount] = useState('');
   const [withholdingRate, setWithholdingRate] = useState('20');
   const [taxRate, setTaxRate] = useState('0');
+  const [vatRate, setVatRate] = useState('22');
 
-  const [acceptedConditions, setAcceptedConditions] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [acceptedDressCode, setAcceptedDressCode] = useState(false);
   const [acceptedConfidentiality, setAcceptedConfidentiality] = useState(false);
@@ -52,64 +60,90 @@ export default function StaffPage() {
     loadStaff();
   }, []);
 
-const calculation = useMemo(() => {
-  const amount = Number(agreedAmount || 0);
-  const withholding = Number(withholdingRate || 0);
-  const extraTax = Number(taxRate || 0);
+  const calculation = useMemo(() => {
+    const amount = Number(agreedAmount || 0);
+    const withholding = Number(withholdingRate || 0);
+    const extraTax = Number(taxRate || 0);
+    const vat = Number(vatRate || 0);
 
-  let netAmount = amount;
-  let documentAmount = amount;
-  let taxAmount = 0;
-  let companyCost = amount;
+    let netAmount = amount;
+    let documentAmount = amount;
+    let taxAmount = 0;
+    let vatAmount = 0;
+    let companyCost = amount;
 
-  if (
-    taxRegime === 'ritenuta_acconto' ||
-    taxRegime === 'collaborazione_occasionale'
-  ) {
-    if (withholdingTax && withholding > 0) {
-      documentAmount = amount / (1 - withholding / 100);
-      taxAmount = documentAmount - amount;
-      companyCost = documentAmount;
+    if (
+      taxRegime === 'ritenuta_acconto' ||
+      taxRegime === 'collaborazione_occasionale'
+    ) {
+      if (withholdingTax && withholding > 0) {
+        documentAmount = amount / (1 - withholding / 100);
+        taxAmount = documentAmount - amount;
+        companyCost = documentAmount;
+      }
     }
-  }
 
-  if (taxRegime === 'piva_forfettaria') {
-    documentAmount = amount;
-    taxAmount = 0;
-    companyCost = amount;
-  }
+    if (taxRegime === 'piva_forfettaria') {
+      documentAmount = amount;
+      taxAmount = 0;
+      vatAmount = 0;
+      companyCost = amount;
+      netAmount = amount;
+    }
 
-  if (
-    taxRegime === 'piva_ordinaria' ||
-    taxRegime === 'agenzia'
-  ) {
-    documentAmount = amount;
-    taxAmount = amount * (extraTax / 100);
-    companyCost = documentAmount + taxAmount;
-  }
+    if (
+      taxRegime === 'piva_ordinaria' ||
+      taxRegime === 'agenzia'
+    ) {
+      documentAmount = amount;
+      vatAmount = amount * (vat / 100);
+      taxAmount = amount * (extraTax / 100);
+      companyCost = documentAmount + vatAmount + taxAmount;
+      netAmount = amount;
+    }
 
-  if (
-    taxRegime === 'cooperativa' ||
-    taxRegime === 'enpals'
-  ) {
-    documentAmount = amount;
-    taxAmount = amount * (extraTax / 100);
-    companyCost = documentAmount + taxAmount;
-  }
+    if (
+      taxRegime === 'cooperativa' ||
+      taxRegime === 'enpals'
+    ) {
+      documentAmount = amount;
+      taxAmount = amount * (extraTax / 100);
+      vatAmount = 0;
+      companyCost = documentAmount + taxAmount;
+      netAmount = amount;
+    }
 
-  return {
-    netAmount: Number(netAmount.toFixed(2)),
-    documentAmount: Number(documentAmount.toFixed(2)),
-    taxAmount: Number(taxAmount.toFixed(2)),
-    grossAmount: Number(companyCost.toFixed(2)),
-  };
-}, [
-  agreedAmount,
-  withholdingRate,
-  taxRate,
-  withholdingTax,
-  taxRegime,
-]);
+    if (taxRegime === 'dipendente') {
+      documentAmount = amount;
+      taxAmount = amount * (extraTax / 100);
+      vatAmount = 0;
+      companyCost = documentAmount + taxAmount;
+      netAmount = amount;
+    }
+
+    if (taxRegime === 'altro') {
+      documentAmount = amount;
+      taxAmount = amount * (extraTax / 100);
+      vatAmount = amount * (vat / 100);
+      companyCost = documentAmount + taxAmount + vatAmount;
+      netAmount = amount;
+    }
+
+    return {
+      netAmount: Number(netAmount.toFixed(2)),
+      documentAmount: Number(documentAmount.toFixed(2)),
+      taxAmount: Number(taxAmount.toFixed(2)),
+      vatAmount: Number(vatAmount.toFixed(2)),
+      companyCost: Number(companyCost.toFixed(2)),
+    };
+  }, [
+    agreedAmount,
+    withholdingRate,
+    taxRate,
+    vatRate,
+    withholdingTax,
+    taxRegime,
+  ]);
 
   async function loadStaff() {
     try {
@@ -128,7 +162,7 @@ const calculation = useMemo(() => {
     }
 
     if (
-      !acceptedConditions ||
+      !acceptedTerms ||
       !acceptedPrivacy ||
       !acceptedDressCode ||
       !acceptedConfidentiality
@@ -157,9 +191,17 @@ const calculation = useMemo(() => {
           agreedAmount: Number(agreedAmount || 0),
           withholdingRate: Number(withholdingRate || 0),
           taxRate: Number(taxRate || 0),
-          grossAmount: calculation.grossAmount,
+          vatRate: Number(vatRate || 0),
+          grossAmount: calculation.documentAmount,
           taxAmount: calculation.taxAmount,
+          vatAmount: calculation.vatAmount,
           netAmount: calculation.netAmount,
+          companyCost: calculation.companyCost,
+          acceptedTerms,
+          acceptedPrivacy,
+          acceptedDressCode,
+          acceptedConfidentiality,
+          acceptedAt: new Date(),
         }),
       });
 
@@ -176,10 +218,13 @@ const calculation = useMemo(() => {
       setFiscalCode('');
       setVatNumber('');
       setIban('');
+      setTaxRegime('ritenuta_acconto');
+      setWithholdingTax(true);
       setAgreedAmount('');
       setWithholdingRate('20');
       setTaxRate('0');
-      setAcceptedConditions(false);
+      setVatRate('22');
+      setAcceptedTerms(false);
       setAcceptedPrivacy(false);
       setAcceptedDressCode(false);
       setAcceptedConfidentiality(false);
@@ -231,17 +276,66 @@ const calculation = useMemo(() => {
 
         <div className="grid gap-8 lg:grid-cols-[460px_1fr]">
           <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-6 text-2xl font-bold">Nuovo membro staff</h2>
+            <h2 className="mb-6 text-2xl font-bold">
+              Nuovo membro staff
+            </h2>
 
             <div className="space-y-4">
-              <input placeholder="Nome" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none" />
-              <input placeholder="Cognome" value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none" />
-              <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none" />
-              <input placeholder="Telefono" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none" />
-              <input placeholder="Ruolo" value={role} onChange={(e) => setRole(e.target.value)} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none" />
-              <input placeholder="Codice fiscale" value={fiscalCode} onChange={(e) => setFiscalCode(e.target.value)} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none" />
-              <input placeholder="Partita IVA" value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none" />
-              <input placeholder="IBAN" value={iban} onChange={(e) => setIban(e.target.value)} className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none" />
+              <input
+                placeholder="Nome"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              />
+
+              <input
+                placeholder="Cognome"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              />
+
+              <input
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              />
+
+              <input
+                placeholder="Telefono"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              />
+
+              <input
+                placeholder="Ruolo"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              />
+
+              <input
+                placeholder="Codice fiscale"
+                value={fiscalCode}
+                onChange={(e) => setFiscalCode(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              />
+
+              <input
+                placeholder="Partita IVA"
+                value={vatNumber}
+                onChange={(e) => setVatNumber(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              />
+
+              <input
+                placeholder="IBAN"
+                value={iban}
+                onChange={(e) => setIban(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              />
 
               <select
                 value={taxRegime}
@@ -255,6 +349,7 @@ const calculation = useMemo(() => {
                 <option value="cooperativa">Cooperativa</option>
                 <option value="agenzia">Agenzia esterna</option>
                 <option value="enpals">Prestazione artistica / ENPALS</option>
+                <option value="dipendente">Dipendente</option>
                 <option value="altro">Altro</option>
               </select>
 
@@ -269,7 +364,7 @@ const calculation = useMemo(() => {
 
               <input
                 type="number"
-                placeholder="Netto concordato"
+                placeholder="Compenso / netto concordato"
                 value={agreedAmount}
                 onChange={(e) => setAgreedAmount(e.target.value)}
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
@@ -291,33 +386,58 @@ const calculation = useMemo(() => {
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
+              <input
+                type="number"
+                placeholder="Aliquota IVA %"
+                value={vatRate}
+                onChange={(e) => setVatRate(e.target.value)}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              />
+
               <div className="rounded-3xl bg-black p-6 text-white">
-               <p>Netto collaboratore: € {calculation.netAmount}</p>
-<p>Documento / fattura: € {calculation.documentAmount}</p>
-<p>Trattenute / IVA / contributi: € {calculation.taxAmount}</p>
-<p className="mt-2 text-xl font-bold">
-  Costo azienda: € {calculation.grossAmount}
-</p>
+                <p>Netto collaboratore: € {calculation.netAmount}</p>
+                <p>Documento / fattura: € {calculation.documentAmount}</p>
+                <p>IVA: € {calculation.vatAmount}</p>
+                <p>Trattenute / contributi: € {calculation.taxAmount}</p>
+                <p className="mt-2 text-xl font-bold">
+                  Costo azienda: € {calculation.companyCost}
+                </p>
               </div>
 
               <div className="space-y-3 rounded-3xl bg-zinc-50 p-5 text-sm">
                 <label className="flex gap-3">
-                  <input type="checkbox" checked={acceptedConditions} onChange={(e) => setAcceptedConditions(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  />
                   Accetto condizioni economiche e operative
                 </label>
 
                 <label className="flex gap-3">
-                  <input type="checkbox" checked={acceptedPrivacy} onChange={(e) => setAcceptedPrivacy(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={acceptedPrivacy}
+                    onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                  />
                   Accetto trattamento dati personali
                 </label>
 
                 <label className="flex gap-3">
-                  <input type="checkbox" checked={acceptedDressCode} onChange={(e) => setAcceptedDressCode(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={acceptedDressCode}
+                    onChange={(e) => setAcceptedDressCode(e.target.checked)}
+                  />
                   Accetto puntualità, dress code e policy aziendale
                 </label>
 
                 <label className="flex gap-3">
-                  <input type="checkbox" checked={acceptedConfidentiality} onChange={(e) => setAcceptedConfidentiality(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={acceptedConfidentiality}
+                    onChange={(e) => setAcceptedConfidentiality(e.target.checked)}
+                  />
                   Accetto riservatezza, social policy e comportamento professionale
                 </label>
               </div>
@@ -369,9 +489,15 @@ const calculation = useMemo(() => {
                           <p>🏦 IBAN: {person.iban || 'Non indicato'}</p>
                           <p>📌 Regime: {person.taxRegime || 'Non indicato'}</p>
                           <p>💶 Netto: € {person.netAmount || 0}</p>
-                          <p>🧮 Tasse: € {person.taxAmount || 0}</p>
+                          <p>🧾 Documento/Fattura: € {person.grossAmount || 0}</p>
+                          <p>🧮 Trattenute/Contributi: € {person.taxAmount || 0}</p>
+                          <p>IVA: € {person.vatAmount || 0}</p>
                           <p className="font-bold text-black">
-                            🏢 Costo azienda: € {person.grossAmount || 0}
+                            🏢 Costo azienda: € {person.companyCost || person.grossAmount || 0}
+                          </p>
+                          <p>
+                            ✅ Condizioni:{' '}
+                            {person.acceptedTerms ? 'Accettate' : 'Non accettate'}
                           </p>
                         </div>
                       </div>
