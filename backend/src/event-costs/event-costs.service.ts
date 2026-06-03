@@ -62,7 +62,42 @@ export class EventCostsService {
       },
     });
   }
+async update(
+  id: string,
+  data: {
+    category?: string;
+    description?: string;
+    supplier?: string;
+    quantity?: number;
+    unitCost?: number;
+    vat?: number;
+  },
+) {
+  const quantity = Number(data.quantity || 1);
+  const unitCost = Number(data.unitCost || 0);
+  const vat = Number(data.vat || 0);
 
+  const subtotal = quantity * unitCost;
+  const totalCost = subtotal + subtotal * (vat / 100);
+
+  return this.prisma.eventCost.update({
+    where: {
+      id,
+    },
+    data: {
+      category: data.category,
+      description: data.description,
+      supplier: data.supplier || null,
+      quantity,
+      unitCost,
+      vat,
+      totalCost,
+    },
+    include: {
+      event: true,
+    },
+  });
+}
   async remove(id: string) {
     return this.prisma.eventCost.delete({
       where: {
