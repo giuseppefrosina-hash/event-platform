@@ -36,12 +36,15 @@ export default function CostingPage() {
   const [vat, setVat] = useState('22');
 
   const [editingId, setEditingId] = useState('');
+  const [editCategory, setEditCategory] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editSupplier, setEditSupplier] = useState('');
   const [editQuantity, setEditQuantity] = useState('');
   const [editUnitCost, setEditUnitCost] = useState('');
   const [editVat, setEditVat] = useState('');
-  const [editCategory, setEditCategory] = useState('');
+
+  const [markup, setMarkup] = useState('30');
+  const [generatingQuote, setGeneratingQuote] = useState(false);
 
   useEffect(() => {
     loadEvents();
@@ -54,6 +57,7 @@ export default function CostingPage() {
     const q = Number(quantity || 1);
     const u = Number(unitCost || 0);
     const v = Number(vat || 0);
+
     const subtotal = q * u;
     const total = subtotal + subtotal * (v / 100);
 
@@ -64,6 +68,7 @@ export default function CostingPage() {
     try {
       const res = await fetch(API_URL + '/events');
       const data = await res.json();
+
       setEvents(Array.isArray(data) ? data : []);
     } catch {
       setMessage('Errore caricamento eventi');
@@ -74,6 +79,7 @@ export default function CostingPage() {
     try {
       const res = await fetch(API_URL + '/event-costs');
       const data = await res.json();
+
       setCosts(Array.isArray(data) ? data : []);
     } catch {
       setMessage('Errore caricamento costi');
@@ -89,7 +95,9 @@ export default function CostingPage() {
     try {
       const res = await fetch(API_URL + '/event-costs', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           eventId,
           category,
@@ -146,7 +154,9 @@ export default function CostingPage() {
     try {
       const res = await fetch(API_URL + '/event-costs/' + editingId, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           category: editCategory,
           description: editDescription,
@@ -170,6 +180,41 @@ export default function CostingPage() {
     }
   }
 
+  async function generateQuote() {
+    if (!eventId) {
+      setMessage('Seleziona un evento prima di generare il preventivo');
+      return;
+    }
+
+    try {
+      setGeneratingQuote(true);
+
+      const res = await fetch(API_URL + '/quotes/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventId,
+          markup: Number(markup || 0),
+        }),
+      });
+
+      if (!res.ok) {
+        setMessage('Errore generazione preventivo');
+        return;
+      }
+
+      const quote = await res.json();
+
+      setMessage(`Preventivo ${quote.quoteNumber} creato con successo`);
+    } catch {
+      setMessage('Errore connessione backend');
+    } finally {
+      setGeneratingQuote(false);
+    }
+  }
+
   const filteredCosts = eventId
     ? costs.filter((cost) => cost.event?.id === eventId)
     : costs;
@@ -182,6 +227,8 @@ export default function CostingPage() {
   const filteredRevenue = Number(selectedEvent?.price || 0);
   const filteredMargin = filteredRevenue - filteredTotal;
 
+  const estimatedQuote = filteredTotal * (1 + Number(markup || 0) / 100);
+
   return (
     <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
       <div className="mx-auto max-w-7xl px-6 py-10">
@@ -190,7 +237,10 @@ export default function CostingPage() {
             <p className="mb-2 text-sm uppercase tracking-[0.3em] text-zinc-500">
               Event Costing
             </p>
-            <h1 className="text-5xl font-bold">Costing evento</h1>
+
+            <h1 className="text-5xl font-bold">
+              Costing evento
+            </h1>
           </div>
 
           <a
@@ -209,24 +259,35 @@ export default function CostingPage() {
 
         <div className="mb-8 grid gap-5 md:grid-cols-3">
           <div className="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-sm">
-            <p className="text-zinc-500">Ricavo previsto</p>
+            <p className="text-zinc-500">
+              Ricavo previsto
+            </p>
+
             <h3 className="mt-2 text-3xl font-bold">
               € {filteredRevenue.toFixed(2)}
             </h3>
           </div>
 
           <div className="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-sm">
-            <p className="text-zinc-500">Costi previsti</p>
+            <p className="text-zinc-500">
+              Costi previsti
+            </p>
+
             <h3 className="mt-2 text-3xl font-bold">
               € {filteredTotal.toFixed(2)}
             </h3>
           </div>
 
           <div className="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-sm">
-            <p className="text-zinc-500">Margine</p>
+            <p className="text-zinc-500">
+              Margine
+            </p>
+
             <h3
               className={`mt-2 text-3xl font-bold ${
-                filteredMargin >= 0 ? 'text-emerald-600' : 'text-red-600'
+                filteredMargin >= 0
+                  ? 'text-emerald-600'
+                  : 'text-red-600'
               }`}
             >
               € {filteredMargin.toFixed(2)}
@@ -236,7 +297,9 @@ export default function CostingPage() {
 
         <div className="grid gap-8 lg:grid-cols-[420px_1fr]">
           <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-6 text-2xl font-bold">Nuovo costo</h2>
+            <h2 className="mb-6 text-2xl font-bold">
+              Nuovo costo
+            </h2>
 
             <div className="space-y-4">
               <select
@@ -244,9 +307,15 @@ export default function CostingPage() {
                 onChange={(e) => setEventId(e.target.value)}
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               >
-                <option value="">Seleziona evento</option>
+                <option value="">
+                  Seleziona evento
+                </option>
+
                 {events.map((event) => (
-                  <option key={event.id} value={event.id}>
+                  <option
+                    key={event.id}
+                    value={event.id}
+                  >
                     {event.title}
                   </option>
                 ))}
@@ -311,9 +380,55 @@ export default function CostingPage() {
                 <p className="text-sm text-zinc-400">
                   Totale costo previsto
                 </p>
+
                 <h3 className="mt-2 text-3xl font-bold">
                   € {previewTotal.toFixed(2)}
                 </h3>
+              </div>
+
+              <div className="rounded-3xl border border-zinc-200 bg-white p-5">
+                <h3 className="mb-4 text-lg font-bold">
+                  Genera Preventivo
+                </h3>
+
+                <input
+                  type="number"
+                  placeholder="Markup %"
+                  value={markup}
+                  onChange={(e) => setMarkup(e.target.value)}
+                  className="mb-4 w-full rounded-xl border border-zinc-200 px-4 py-3"
+                />
+
+                <div className="mb-4 rounded-2xl bg-zinc-50 p-4 text-sm">
+                  <div className="mb-2 flex justify-between">
+                    <span>Costi evento</span>
+                    <span>
+                      € {filteredTotal.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="mb-2 flex justify-between">
+                    <span>Markup</span>
+                    <span>{markup}%</span>
+                  </div>
+
+                  <div className="flex justify-between font-bold">
+                    <span>Preventivo stimato</span>
+                    <span>
+                      € {estimatedQuote.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={generateQuote}
+                  disabled={generatingQuote}
+                  className="w-full rounded-2xl bg-emerald-600 px-5 py-4 font-semibold text-white disabled:opacity-60"
+                >
+                  {generatingQuote
+                    ? 'Generazione...'
+                    : 'Genera Preventivo'}
+                </button>
               </div>
 
               <button
@@ -327,7 +442,9 @@ export default function CostingPage() {
 
           <section>
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Lista costi</h2>
+              <h2 className="text-2xl font-bold">
+                Lista costi
+              </h2>
 
               <button
                 onClick={loadCosts}
@@ -360,7 +477,10 @@ export default function CostingPage() {
                       </div>
 
                       <div className="text-right">
-                        <p className="text-sm text-zinc-500">Totale</p>
+                        <p className="text-sm text-zinc-500">
+                          Totale
+                        </p>
+
                         <p className="text-xl font-bold">
                           € {Number(cost.totalCost || 0).toFixed(2)}
                         </p>
@@ -371,17 +491,29 @@ export default function CostingPage() {
                       <div className="grid gap-2 text-zinc-600">
                         <p>
                           Evento:{' '}
-                          {cost.event?.title || 'Evento non disponibile'}
+                          {cost.event?.title ||
+                            'Evento non disponibile'}
                         </p>
+
                         <p>
-                          Fornitore: {cost.supplier || 'Non indicato'}
+                          Fornitore:{' '}
+                          {cost.supplier ||
+                            'Non indicato'}
                         </p>
-                        <p>Quantità: {cost.quantity}</p>
+
+                        <p>
+                          Quantità: {cost.quantity}
+                        </p>
+
                         <p>
                           Costo unitario: €{' '}
                           {Number(cost.unitCost || 0).toFixed(2)}
                         </p>
-                        <p>IVA: {cost.vat}%</p>
+
+                        <p>
+                          IVA: {cost.vat}%
+                        </p>
+
                         <p className="font-bold text-black">
                           Totale costo: €{' '}
                           {Number(cost.totalCost || 0).toFixed(2)}
@@ -467,7 +599,9 @@ export default function CostingPage() {
                             <input
                               type="number"
                               value={editVat}
-                              onChange={(e) => setEditVat(e.target.value)}
+                              onChange={(e) =>
+                                setEditVat(e.target.value)
+                              }
                               placeholder="IVA"
                               className="rounded-xl border border-zinc-200 px-4 py-3"
                             />
