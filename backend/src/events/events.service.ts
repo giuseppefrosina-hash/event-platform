@@ -60,23 +60,46 @@ console.log('CREATE EVENT PRICE:', data.price);
   }
 
   async delete(id: string) {
-    const event =
-      await this.prisma.event.findUnique({
-        where: {
-          id,
-        },
-      });
-
-    if (!event) {
-      throw new NotFoundException(
-        'Event not found',
-      );
-    }
-
-    return this.prisma.event.delete({
+  const event =
+    await this.prisma.event.findUnique({
       where: {
         id,
       },
     });
+
+  if (!event) {
+    throw new NotFoundException(
+      'Event not found',
+    );
   }
+
+  await this.prisma.ticket.deleteMany({
+    where: {
+      eventId: id,
+    },
+  });
+
+  await this.prisma.eventCost.deleteMany({
+    where: {
+      eventId: id,
+    },
+  });
+
+  await this.prisma.quote.deleteMany({
+    where: {
+      eventId: id,
+    },
+  });
+
+  await this.prisma.travel.deleteMany({
+    where: {
+      eventId: id,
+    },
+  });
+
+  return this.prisma.event.delete({
+    where: {
+      id,
+    },
+  });
 }
