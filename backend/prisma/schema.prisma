@@ -157,6 +157,9 @@ model Quote {
   paidAmount      Float @default(0)
   remainingAmount Float @default(0)
 
+  dueDate  DateTime?
+  paidDate DateTime?
+
   status String
 
   createdAt DateTime @default(now())

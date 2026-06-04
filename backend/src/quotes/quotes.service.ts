@@ -12,11 +12,13 @@ export class QuotesService {
     totalAmount: number;
     vatAmount: number;
     paidAmount?: number;
+    dueDate?: string;
     status: string;
   }) {
     const totalAmount = Number(data.totalAmount || 0);
     const paidAmount = Number(data.paidAmount || 0);
     const remainingAmount = totalAmount - paidAmount;
+    const isPaid = remainingAmount <= 0 && totalAmount > 0;
 
     return this.prisma.quote.create({
       data: {
@@ -27,10 +29,11 @@ export class QuotesService {
         vatAmount: Number(data.vatAmount || 0),
         paidAmount,
         remainingAmount,
-        status:
-          remainingAmount <= 0 && totalAmount > 0
-            ? 'paid'
-            : data.status || 'draft',
+        dueDate: data.dueDate
+          ? new Date(data.dueDate)
+          : null,
+        paidDate: isPaid ? new Date() : null,
+        status: isPaid ? 'paid' : data.status || 'draft',
       },
       include: {
         event: true,
@@ -70,6 +73,8 @@ export class QuotesService {
       totalAmount?: number;
       vatAmount?: number;
       paidAmount?: number;
+      dueDate?: string;
+      paidDate?: string;
       status?: string;
     },
   ) {
@@ -92,6 +97,7 @@ export class QuotesService {
         : Number(current.paidAmount || 0);
 
     const remainingAmount = totalAmount - paidAmount;
+    const isPaid = remainingAmount <= 0 && totalAmount > 0;
 
     return this.prisma.quote.update({
       where: { id },
@@ -104,10 +110,20 @@ export class QuotesService {
             : Number(current.vatAmount || 0),
         paidAmount,
         remainingAmount,
-        status:
-          remainingAmount <= 0 && totalAmount > 0
-            ? 'paid'
-            : data.status ?? current.status,
+        dueDate:
+          data.dueDate !== undefined
+            ? data.dueDate
+              ? new Date(data.dueDate)
+              : null
+            : current.dueDate,
+        paidDate: isPaid
+          ? data.paidDate
+            ? new Date(data.paidDate)
+            : current.paidDate || new Date()
+          : null,
+        status: isPaid
+          ? 'paid'
+          : data.status ?? current.status,
       },
       include: {
         event: true,
@@ -151,6 +167,8 @@ export class QuotesService {
         vatAmount,
         paidAmount: 0,
         remainingAmount: totalAmount,
+        dueDate: null,
+        paidDate: null,
         status: 'draft',
       },
       include: {
