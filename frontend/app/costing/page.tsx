@@ -22,6 +22,11 @@ type EventCost = {
   event?: EventItem;
 };
 
+type Supplier = {
+  id: string;
+  companyName: string;
+};
+
 export default function CostingPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [costs, setCosts] = useState<EventCost[]>([]);
@@ -42,7 +47,7 @@ export default function CostingPage() {
   const [editQuantity, setEditQuantity] = useState('');
   const [editUnitCost, setEditUnitCost] = useState('');
   const [editVat, setEditVat] = useState('');
-
+const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [markup, setMarkup] = useState('30');
   const [generatingQuote, setGeneratingQuote] = useState(false);
 
@@ -345,12 +350,19 @@ export default function CostingPage() {
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
-              <input
-                placeholder="Fornitore / riferimento"
-                value={supplier}
-                onChange={(e) => setSupplier(e.target.value)}
-                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
-              />
+              <select
+  value={supplier}
+  onChange={(e) => setSupplier(e.target.value)}
+  className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+>
+  <option value="">Seleziona fornitore</option>
+
+  {suppliers.map((item) => (
+    <option key={item.id} value={item.companyName}>
+      {item.companyName}
+    </option>
+  ))}
+</select>
 
               <input
                 type="number"
