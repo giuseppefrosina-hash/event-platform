@@ -15,7 +15,7 @@ import { TicketsModule } from './tickets/tickets.module';
 import { MailModule } from './mail/mail.module';
 import { EventCostsModule } from './event-costs/event-costs.module';
 import { QuotesModule } from './quotes/quotes.module';
-
+import { PracticesModule } from './practices/practices.module';
 @Module({
 imports: [
   AuthModule,
@@ -28,7 +28,9 @@ imports: [
   MailModule,
   EventCostsModule,
   QuotesModule,
+  PracticesModule,
 ],
+
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
