@@ -103,6 +103,28 @@ model Staff {
 
   createdAt DateTime @default(now())
 }
+model Practice {
+  id String @id @default(cuid())
+
+  practiceNumber String @unique
+
+  title String
+
+  businessType String
+
+  clientName String
+
+  startDate DateTime?
+  endDate DateTime?
+
+  participants Int @default(0)
+
+  status String @default("lead")
+
+  notes String?
+
+  createdAt DateTime @default(now())
+}
 model Event {
   id          String  @id @default(cuid())
   title       String
