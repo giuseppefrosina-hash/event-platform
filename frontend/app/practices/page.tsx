@@ -18,6 +18,11 @@ type Practice = {
   createdAt: string;
 };
 
+type Company = {
+  id: string;
+  name: string;
+};
+
 function formatDate(value?: string | null) {
   if (!value) return 'Non indicata';
   return new Date(value).toLocaleDateString('it-IT');
@@ -37,10 +42,12 @@ function statusLabel(value: string) {
 
 export default function PracticesPage() {
   const [practices, setPractices] = useState<Practice[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [message, setMessage] = useState('');
 
   const [title, setTitle] = useState('');
   const [businessType, setBusinessType] = useState('Evento');
+  const [companyId, setCompanyId] = useState('');
   const [clientName, setClientName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -50,7 +57,39 @@ export default function PracticesPage() {
 
   useEffect(() => {
     loadPractices();
+    loadCompanies();
   }, []);
+
+  async function loadCompanies() {
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        setMessage('Effettua il login per caricare i clienti');
+        return;
+      }
+
+      const res = await fetch(API_URL + '/companies', {
+        headers: {
+          Authorization: 'Bearer ' + token,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(
+          data.message ||
+            'Errore caricamento clienti',
+        );
+        return;
+      }
+
+      setCompanies(Array.isArray(data) ? data : []);
+    } catch {
+      setMessage('Errore caricamento clienti');
+    }
+  }
 
   async function loadPractices() {
     try {
@@ -64,7 +103,7 @@ export default function PracticesPage() {
   }
 
   async function createPractice() {
-    if (!title || !clientName || !businessType) {
+    if (!title || !companyId || !businessType) {
       setMessage('Titolo, cliente e business sono obbligatori');
       return;
     }
@@ -87,13 +126,19 @@ export default function PracticesPage() {
         }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        setMessage('Errore creazione pratica');
+        setMessage(
+          data.message ||
+            'Errore creazione pratica',
+        );
         return;
       }
 
       setTitle('');
       setBusinessType('Evento');
+      setCompanyId('');
       setClientName('');
       setStartDate('');
       setEndDate('');
@@ -162,18 +207,40 @@ export default function PracticesPage() {
 
             <div className="space-y-4">
               <input
-                placeholder="Titolo pratica"
+                placeholder="Titolo pratica *"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
 
-              <input
-                placeholder="Cliente"
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
+              <select
+                value={companyId}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+
+                  setCompanyId(selectedId);
+
+                  const company = companies.find(
+                    (item) => item.id === selectedId,
+                  );
+
+                  setClientName(company?.name || '');
+                }}
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
-              />
+              >
+                <option value="">
+                  Seleziona cliente *
+                </option>
+
+                {companies.map((company) => (
+                  <option
+                    key={company.id}
+                    value={company.id}
+                  >
+                    {company.name}
+                  </option>
+                ))}
+              </select>
 
               <select
                 value={businessType}
