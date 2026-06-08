@@ -103,6 +103,7 @@ model Staff {
 
   createdAt DateTime @default(now())
 }
+
 model Practice {
   id String @id @default(cuid())
 
@@ -115,7 +116,7 @@ model Practice {
   clientName String
 
   startDate DateTime?
-  endDate DateTime?
+  endDate   DateTime?
 
   participants Int @default(0)
 
@@ -124,7 +125,10 @@ model Practice {
   notes String?
 
   createdAt DateTime @default(now())
+
+  quotes Quote[]
 }
+
 model Event {
   id          String  @id @default(cuid())
   title       String
@@ -169,6 +173,9 @@ model EventCost {
 model Quote {
   id      String @id @default(cuid())
   eventId String
+
+  practiceId String?
+  practice   Practice? @relation(fields: [practiceId], references: [id])
 
   quoteNumber String
   clientName  String

@@ -7,6 +7,7 @@ export class QuotesService {
 
   async create(data: {
     eventId: string;
+    practiceId?: string;
     quoteNumber: string;
     clientName: string;
     totalAmount: number;
@@ -23,6 +24,7 @@ export class QuotesService {
     return this.prisma.quote.create({
       data: {
         eventId: data.eventId,
+        practiceId: data.practiceId || null,
         quoteNumber: data.quoteNumber,
         clientName: data.clientName,
         totalAmount,
@@ -37,6 +39,7 @@ export class QuotesService {
       },
       include: {
         event: true,
+        practice: true,
       },
     });
   }
@@ -48,6 +51,7 @@ export class QuotesService {
       },
       include: {
         event: true,
+        practice: true,
       },
     });
   }
@@ -62,6 +66,7 @@ export class QuotesService {
       },
       include: {
         event: true,
+        practice: true,
       },
     });
   }
@@ -76,6 +81,7 @@ export class QuotesService {
       dueDate?: string;
       paidDate?: string;
       status?: string;
+      practiceId?: string | null;
     },
   ) {
     const current = await this.prisma.quote.findUnique({
@@ -124,9 +130,14 @@ export class QuotesService {
         status: isPaid
           ? 'paid'
           : data.status ?? current.status,
+        practiceId:
+          data.practiceId !== undefined
+            ? data.practiceId || null
+            : current.practiceId,
       },
       include: {
         event: true,
+        practice: true,
       },
     });
   }
@@ -161,6 +172,7 @@ export class QuotesService {
     return this.prisma.quote.create({
       data: {
         eventId,
+        practiceId: null,
         quoteNumber: `Q-${Date.now()}`,
         clientName: event.title,
         totalAmount,
@@ -173,6 +185,7 @@ export class QuotesService {
       },
       include: {
         event: true,
+        practice: true,
       },
     });
   }
