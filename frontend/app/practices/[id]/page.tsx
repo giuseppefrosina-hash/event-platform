@@ -46,9 +46,10 @@ export default function PracticeDetailPage({
       const data = await res.json();
 
       const found = data.find(
-        (item: Practice) =>
-          item.id === params.id,
-      );
+  (item: Practice) =>
+    item.id ===
+    window.location.pathname.split('/').pop(),
+);
 
       setPractice(found || null);
     } catch (error) {
