@@ -1,15 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
+
 import { PracticeCostsService } from './practice-costs.service';
-import { CreatePracticeCostDto } from './dto/create-practice-cost.dto';
-import { UpdatePracticeCostDto } from './dto/update-practice-cost.dto';
 
 @Controller('practice-costs')
 export class PracticeCostsController {
-  constructor(private readonly practiceCostsService: PracticeCostsService) {}
+  constructor(
+    private readonly practiceCostsService: PracticeCostsService,
+  ) {}
 
   @Post()
-  create(@Body() createPracticeCostDto: CreatePracticeCostDto) {
-    return this.practiceCostsService.create(createPracticeCostDto);
+  create(@Body() body: any) {
+    return this.practiceCostsService.create(body);
   }
 
   @Get()
@@ -17,18 +26,25 @@ export class PracticeCostsController {
     return this.practiceCostsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.practiceCostsService.findOne(+id);
+  @Get('practice/:practiceId')
+  findByPractice(
+    @Param('practiceId') practiceId: string,
+  ) {
+    return this.practiceCostsService.findByPractice(
+      practiceId,
+    );
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePracticeCostDto: UpdatePracticeCostDto) {
-    return this.practiceCostsService.update(+id, updatePracticeCostDto);
+  update(
+    @Param('id') id: string,
+    @Body() body: any,
+  ) {
+    return this.practiceCostsService.update(id, body);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.practiceCostsService.remove(+id);
+    return this.practiceCostsService.remove(id);
   }
 }
