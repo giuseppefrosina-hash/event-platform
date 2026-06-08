@@ -16,6 +16,7 @@ import { MailModule } from './mail/mail.module';
 import { EventCostsModule } from './event-costs/event-costs.module';
 import { QuotesModule } from './quotes/quotes.module';
 import { PracticesModule } from './practices/practices.module';
+import { PracticeCostsModule } from './practice-costs/practice-costs.module';
 @Module({
 imports: [
   AuthModule,
@@ -29,6 +30,7 @@ imports: [
   EventCostsModule,
   QuotesModule,
   PracticesModule,
+  PracticeCostsModule,
 ],
 
   controllers: [AppController],
