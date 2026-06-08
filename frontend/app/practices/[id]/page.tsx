@@ -22,16 +22,23 @@ function formatDate(value?: string | null) {
   return new Date(value).toLocaleDateString('it-IT');
 }
 
-export default function PracticeDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+function statusLabel(value: string) {
+  if (value === 'lead') return 'Lead';
+  if (value === 'preventivo') return 'Preventivo';
+  if (value === 'opzionata') return 'Opzionata';
+  if (value === 'confermata') return 'Confermata';
+  if (value === 'in_corso') return 'In corso';
+  if (value === 'chiusa') return 'Chiusa';
+  if (value === 'annullata') return 'Annullata';
+
+  return value;
+}
+
+export default function PracticeDetailPage() {
   const [practice, setPractice] =
     useState<Practice | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadPractice();
@@ -39,17 +46,18 @@ export default function PracticeDetailPage({
 
   async function loadPractice() {
     try {
-      const res = await fetch(
-        API_URL + '/practices',
-      );
+      const practiceId =
+        window.location.pathname.split('/').pop();
 
+      const res = await fetch(API_URL + '/practices');
       const data = await res.json();
 
-      const found = data.find(
-  (item: Practice) =>
-    item.id ===
-    window.location.pathname.split('/').pop(),
-);
+      const found = Array.isArray(data)
+        ? data.find(
+            (item: Practice) =>
+              item.id === practiceId,
+          )
+        : null;
 
       setPractice(found || null);
     } catch (error) {
@@ -61,7 +69,7 @@ export default function PracticeDetailPage({
 
   if (loading) {
     return (
-      <main className="p-10">
+      <main className="min-h-screen bg-[#f5f5f7] p-10 text-[#111]">
         Caricamento...
       </main>
     );
@@ -69,171 +77,128 @@ export default function PracticeDetailPage({
 
   if (!practice) {
     return (
-      <main className="p-10">
+      <main className="min-h-screen bg-[#f5f5f7] p-10 text-[#111]">
         Pratica non trovata
       </main>
     );
   }
 
-  return (
-    <main className="min-h-screen bg-[#f5f5f7] p-10">
-      <div className="mx-auto max-w-7xl">
+  const detailRows = [
+    ['Titolo', practice.title],
+    ['Cliente', practice.clientName],
+    ['Business', practice.businessType],
+    ['Data inizio', formatDate(practice.startDate)],
+    ['Data fine', formatDate(practice.endDate)],
+    ['Partecipanti', String(practice.participants || 0)],
+    ['Stato', statusLabel(practice.status)],
+    ['Note', practice.notes || 'Nessuna nota'],
+  ];
 
-        <div className="mb-8 flex items-center justify-between">
+  return (
+    <main className="min-h-screen bg-[#f5f5f7] p-10 text-[#111]">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-10 flex items-center justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+            <p className="mb-2 text-sm uppercase tracking-[0.3em] text-zinc-500">
               Practice Detail
             </p>
 
-            <h1 className="mt-2 text-5xl font-bold">
+            <h1 className="text-5xl font-bold text-black">
               {practice.practiceNumber}
             </h1>
           </div>
 
           <a
             href="/practices"
-            className="rounded-2xl bg-black px-5 py-3 text-white"
+            className="rounded-2xl bg-black px-5 py-3 font-semibold text-white"
           >
-            Torna alle pratiche
+            ← Torna alle pratiche
           </a>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-
-          <div className="rounded-[2rem] bg-white p-8 shadow-sm lg:col-span-2">
-
-            <h2 className="mb-6 text-2xl font-bold">
+        <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+          <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 text-[#111] shadow-sm">
+            <h2 className="mb-6 text-2xl font-bold text-black">
               Dati pratica
             </h2>
 
-            <div className="space-y-4">
+            <div className="divide-y divide-zinc-100">
+              {detailRows.map(([label, value]) => (
+                <div
+                  key={label}
+                  className="grid gap-3 py-5 md:grid-cols-[180px_1fr]"
+                >
+                  <div className="font-semibold text-zinc-500">
+                    {label}
+                  </div>
 
-              <div>
-                <strong>Titolo</strong>
-                <p>{practice.title}</p>
-              </div>
-
-              <div>
-                <strong>Cliente</strong>
-                <p>{practice.clientName}</p>
-              </div>
-
-              <div>
-                <strong>Business</strong>
-                <p>{practice.businessType}</p>
-              </div>
-
-              <div>
-                <strong>Data inizio</strong>
-                <p>
-                  {formatDate(
-                    practice.startDate,
-                  )}
-                </p>
-              </div>
-
-              <div>
-                <strong>Data fine</strong>
-                <p>
-                  {formatDate(
-                    practice.endDate,
-                  )}
-                </p>
-              </div>
-
-              <div>
-                <strong>Partecipanti</strong>
-                <p>
-                  {practice.participants}
-                </p>
-              </div>
-
-              <div>
-                <strong>Stato</strong>
-                <p>{practice.status}</p>
-              </div>
-
-              <div>
-                <strong>Note</strong>
-                <p>
-                  {practice.notes ||
-                    'Nessuna nota'}
-                </p>
-              </div>
-
+                  <div className="font-medium text-black">
+                    {value}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          </section>
 
-          <div className="space-y-6">
-
-            <div className="rounded-[2rem] bg-white p-8 shadow-sm">
-              <h3 className="mb-4 text-xl font-bold">
-                Economico
+          <aside className="space-y-6">
+            <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 text-[#111] shadow-sm">
+              <h3 className="mb-6 text-xl font-bold text-black">
+                Riepilogo economico
               </h3>
 
-              <div className="space-y-3">
+              <div className="divide-y divide-zinc-100">
+                {[
+                  ['Venduto', '€ 0,00'],
+                  ['Costi', '€ 0,00'],
+                  ['Margine', '€ 0,00'],
+                  ['Incassato', '€ 0,00'],
+                  ['Da incassare', '€ 0,00'],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="flex justify-between py-4"
+                  >
+                    <span className="text-zinc-600">
+                      {label}
+                    </span>
 
-                <div className="flex justify-between">
-                  <span>Venduto</span>
-                  <strong>€ 0</strong>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Costi</span>
-                  <strong>€ 0</strong>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Margine</span>
-                  <strong>€ 0</strong>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Incassato</span>
-                  <strong>€ 0</strong>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Da incassare</span>
-                  <strong>€ 0</strong>
-                </div>
-
+                    <strong className="text-black">
+                      {value}
+                    </strong>
+                  </div>
+                ))}
               </div>
-            </div>
+            </section>
 
-            <div className="rounded-[2rem] bg-white p-8 shadow-sm">
-              <h3 className="mb-4 text-xl font-bold">
+            <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 text-[#111] shadow-sm">
+              <h3 className="mb-6 text-xl font-bold text-black">
                 Collegamenti
               </h3>
 
               <div className="space-y-3">
-
                 <a
                   href="/quotes"
-                  className="block rounded-xl bg-black px-4 py-3 text-center text-white"
+                  className="block rounded-xl bg-black px-4 py-3 text-center font-semibold text-white"
                 >
                   Preventivi
                 </a>
 
                 <a
                   href="/costing"
-                  className="block rounded-xl bg-zinc-100 px-4 py-3 text-center"
+                  className="block rounded-xl bg-zinc-100 px-4 py-3 text-center font-semibold text-black"
                 >
                   Costing
                 </a>
 
                 <a
                   href="/staff"
-                  className="block rounded-xl bg-zinc-100 px-4 py-3 text-center"
+                  className="block rounded-xl bg-zinc-100 px-4 py-3 text-center font-semibold text-black"
                 >
-                  Staff
+                  Team & Partner
                 </a>
-
               </div>
-            </div>
-
-          </div>
-
+            </section>
+          </aside>
         </div>
       </div>
     </main>
