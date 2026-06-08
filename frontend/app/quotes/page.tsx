@@ -9,6 +9,7 @@ type EventItem = {
   title: string;
 };
 
+
 type Quote = {
   id: string;
   quoteNumber: string;
@@ -21,14 +22,25 @@ type Quote = {
   paidDate?: string | null;
   status: string;
   event?: EventItem;
+  practice?: Practice | null;
+practiceId?: string | null;
+};
+
+type Practice = {
+  id: string;
+  practiceNumber: string;
+  title: string;
+  clientName: string;
 };
 
 export default function QuotesPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
+const [practices, setPractices] = useState<Practice[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [message, setMessage] = useState('');
 
   const [eventId, setEventId] = useState('');
+  const [practiceId, setPracticeId] = useState('');
   const [quoteNumber, setQuoteNumber] = useState('');
   const [clientName, setClientName] = useState('');
   const [amount, setAmount] = useState('');
@@ -42,11 +54,17 @@ const [paymentInputs, setPaymentInputs] =
 const [dueDateInputs, setDueDateInputs] =
   useState<Record<string, string>>({});
 
-  useEffect(() => {
-    loadEvents();
-    loadQuotes();
-  }, []);
+useEffect(() => {
+  loadEvents();
+  loadPractices();
+  loadQuotes();
+}, []);
+async function loadPractices() {
+  const res = await fetch(API_URL + '/practices');
+  const data = await res.json();
 
+  setPractices(Array.isArray(data) ? data : []);
+}
   const totals = useMemo(() => {
     const base = Number(amount || 0);
     const vat = Number(vatRate || 0);
@@ -164,6 +182,7 @@ function getPaymentStatus(quote: Quote) {
       },
       body: JSON.stringify({
         eventId,
+        practiceId: practiceId || undefined,
         quoteNumber,
         clientName,
         totalAmount: totals.totalAmount,
@@ -180,6 +199,7 @@ function getPaymentStatus(quote: Quote) {
     }
 
     setEventId('');
+    setPracticeId('');
     setQuoteNumber('');
     setClientName('');
     setAmount('');
@@ -268,7 +288,7 @@ function getPaymentStatus(quote: Quote) {
             </h2>
 
             <div className="space-y-4">
-              <select
+                           <select
                 value={eventId}
                 onChange={(e) =>
                   setEventId(e.target.value)
@@ -289,6 +309,41 @@ function getPaymentStatus(quote: Quote) {
                 ))}
               </select>
 
+              <select
+                value={practiceId}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+
+                  setPracticeId(selectedId);
+
+                  const practice = practices.find(
+                    (item) =>
+                      item.id === selectedId,
+                  );
+
+                  if (practice) {
+                    setClientName(
+                      practice.clientName,
+                    );
+                  }
+                }}
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
+              >
+                <option value="">
+                  Seleziona pratica
+                </option>
+
+                {practices.map((practice) => (
+                  <option
+                    key={practice.id}
+                    value={practice.id}
+                  >
+                    {practice.practiceNumber} -{' '}
+                    {practice.title}
+                  </option>
+                ))}
+              </select>
+
               <input
                 placeholder="Numero preventivo"
                 value={quoteNumber}
@@ -297,7 +352,6 @@ function getPaymentStatus(quote: Quote) {
                 }
                 className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 outline-none"
               />
-
               <input
                 placeholder="Cliente"
                 value={clientName}
@@ -443,6 +497,13 @@ function getPaymentStatus(quote: Quote) {
                               Evento:{' '}
                               {quote.event?.title ||
                                 'Evento non disponibile'}
+                            </p>
+
+                            <p>
+                              Pratica:{' '}
+                              {quote.practice
+                                ? `${quote.practice.practiceNumber} - ${quote.practice.title}`
+                                : 'Non collegata'}
                             </p>
 
                             <p>
