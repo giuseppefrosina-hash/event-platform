@@ -25,6 +25,11 @@ type PracticeCost = {
   totalCost: number;
   vat: number;
   notes?: string | null;
+  category: string;
+sellingPrice?: number | null;
+marginAmount?: number | null;
+marginPercent?: number | null;
+status: string;
 };
 
 function formatDate(value?: string | null) {
@@ -54,12 +59,17 @@ const [supplierName, setSupplierName] = useState('');
 const [quantity, setQuantity] = useState('1');
 const [unitCost, setUnitCost] = useState('');
 const [vat, setVat] = useState('22');
+const [category, setCategory] = useState('Altro');
+const [sellingPrice, setSellingPrice] = useState('');
+const [costStatus, setCostStatus] = useState('draft');
 const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadPractice();
-  }, []);
+useEffect(() => {
+  loadPractice();
+  loadCosts();
+}, []);
+
 async function loadCosts() {
   try {
     const practiceId =
@@ -98,11 +108,16 @@ async function createCost() {
         unitCost: Number(unitCost),
         vat: Number(vat),
         notes,
+        category,
+sellingPrice: sellingPrice
+  ? Number(sellingPrice)
+  : null,
+status: costStatus,
       }),
     },
   );
 
-  if (!res.ok) return;
+if (!res.ok) return;
 
   setServiceName('');
   setSupplierName('');
@@ -110,6 +125,9 @@ async function createCost() {
   setUnitCost('');
   setVat('22');
   setNotes('');
+  setCategory('Altro');
+  setSellingPrice('');
+  setCostStatus('draft');
 
   loadCosts();
 }
@@ -197,6 +215,7 @@ async function deleteCost(id: string) {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+  <div className="space-y-6">
           <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 text-[#111] shadow-sm">
             <h2 className="mb-6 text-2xl font-bold text-black">
               Dati pratica
@@ -219,7 +238,181 @@ async function deleteCost(id: string) {
               ))}
             </div>
           </section>
+          <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 text-[#111] shadow-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-black">
+                  Costing pratica
+                </h2>
+                <p className="mt-1 text-zinc-500">
+                  Servizi, fornitori e costi collegati alla pratica
+                </p>
+              </div>
 
+              <div className="rounded-2xl bg-black px-5 py-3 text-white">
+                Totale costi:{' '}
+                {new Intl.NumberFormat('it-IT', {
+                  style: 'currency',
+                  currency: 'EUR',
+                }).format(
+                  costs.reduce(
+                    (sum, cost) =>
+                      sum + Number(cost.totalCost || 0),
+                    0,
+                  ),
+                )}
+              </div>
+            </div>
+
+            <div className="mb-8 grid gap-4 rounded-3xl bg-zinc-50 p-5 md:grid-cols-2">
+              <input
+                placeholder="Servizio"
+                value={serviceName}
+                onChange={(e) =>
+                  setServiceName(e.target.value)
+                }
+                className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 outline-none"
+              />
+
+              <input
+                placeholder="Fornitore"
+                value={supplierName}
+                onChange={(e) =>
+                  setSupplierName(e.target.value)
+                }
+                className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 outline-none"
+              />
+
+              <input
+                type="number"
+                placeholder="Quantità"
+                value={quantity}
+                onChange={(e) =>
+                  setQuantity(e.target.value)
+                }
+                className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 outline-none"
+              />
+
+              <input
+                type="number"
+                placeholder="Costo unitario"
+                value={unitCost}
+                onChange={(e) =>
+                  setUnitCost(e.target.value)
+                }
+                className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 outline-none"
+              />
+
+              <input
+                type="number"
+                placeholder="IVA %"
+                value={vat}
+                onChange={(e) =>
+                  setVat(e.target.value)
+                }
+                className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 outline-none"
+              />
+
+              <input
+                placeholder="Note"
+                value={notes}
+                onChange={(e) =>
+                  setNotes(e.target.value)
+                }
+                className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 outline-none"
+              />
+
+              <button
+                onClick={createCost}
+                className="rounded-2xl bg-black px-6 py-4 font-semibold text-white md:col-span-2"
+              >
+                Aggiungi costo
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[800px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-200 text-zinc-500">
+                    <th className="py-3 pr-4">Servizio</th>
+                    <th className="py-3 pr-4">Fornitore</th>
+                    <th className="py-3 pr-4">Q.tà</th>
+                    <th className="py-3 pr-4">Costo unit.</th>
+                    <th className="py-3 pr-4">IVA</th>
+                    <th className="py-3 pr-4">Totale</th>
+                    <th className="py-3 pr-4">Note</th>
+                    <th className="py-3 pr-4"></th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {costs.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="py-8 text-center text-zinc-500"
+                      >
+                        Nessun costo inserito.
+                      </td>
+                    </tr>
+                  ) : (
+                    costs.map((cost) => (
+                      <tr
+                        key={cost.id}
+                        className="border-b border-zinc-100"
+                      >
+                        <td className="py-4 pr-4 font-semibold text-black">
+                          {cost.serviceName}
+                        </td>
+
+                        <td className="py-4 pr-4 text-zinc-600">
+                          {cost.supplierName || '-'}
+                        </td>
+
+                        <td className="py-4 pr-4">
+                          {cost.quantity}
+                        </td>
+
+                        <td className="py-4 pr-4">
+                          {new Intl.NumberFormat('it-IT', {
+                            style: 'currency',
+                            currency: 'EUR',
+                          }).format(Number(cost.unitCost || 0))}
+                        </td>
+
+                        <td className="py-4 pr-4">
+                          {cost.vat}%
+                        </td>
+
+                        <td className="py-4 pr-4 font-bold text-black">
+                          {new Intl.NumberFormat('it-IT', {
+                            style: 'currency',
+                            currency: 'EUR',
+                          }).format(Number(cost.totalCost || 0))}
+                        </td>
+
+                        <td className="py-4 pr-4 text-zinc-600">
+                          {cost.notes || '-'}
+                        </td>
+
+                        <td className="py-4 pr-4">
+                          <button
+                            onClick={() =>
+                              deleteCost(cost.id)
+                            }
+                            className="rounded-xl bg-red-100 px-4 py-2 text-red-600"
+                          >
+                            Elimina
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+  </div>
           <aside className="space-y-6">
             <section className="rounded-[2rem] border border-zinc-200 bg-white p-8 text-[#111] shadow-sm">
               <h3 className="mb-6 text-xl font-bold text-black">
@@ -227,13 +420,56 @@ async function deleteCost(id: string) {
               </h3>
 
               <div className="divide-y divide-zinc-100">
-                {[
-                  ['Venduto', '€ 0,00'],
-                  ['Costi', '€ 0,00'],
-                  ['Margine', '€ 0,00'],
-                  ['Incassato', '€ 0,00'],
-                  ['Da incassare', '€ 0,00'],
-                ].map(([label, value]) => (
+               {[
+  [
+    'Venduto',
+    new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(0),
+  ],
+  [
+    'Costi',
+    new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(
+      costs.reduce(
+        (sum, cost) =>
+          sum + Number(cost.totalCost || 0),
+        0,
+      ),
+    ),
+  ],
+  [
+    'Margine',
+    new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(
+      0 -
+        costs.reduce(
+          (sum, cost) =>
+            sum + Number(cost.totalCost || 0),
+          0,
+        ),
+    ),
+  ],
+  [
+    'Incassato',
+    new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(0),
+  ],
+  [
+    'Da incassare',
+    new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(0),
+  ],
+].map(([label, value]) => (
                   <div
                     key={label}
                     className="flex justify-between py-4"
