@@ -254,56 +254,31 @@ export default function DashboardPage() {
             </div>
 
             <div>
-              <p className="mb-2 px-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
-                Eventi
-              </p>
+  <p className="mb-2 px-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
+    Operativo
+  </p>
 
-              <a
-                className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
-                href="/events"
-              >
-                Eventi
-              </a>
+  <a
+    className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
+    href="/practices"
+  >
+    Pratiche
+  </a>
 
-              <a
-                className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
-                href="/tickets"
-              >
-                Ticket
-              </a>
+  <a
+    className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
+    href="/staff"
+  >
+    Staff
+  </a>
 
-              <a
-                className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
-                href="/checkin"
-              >
-                Check-in QR
-              </a>
-            </div>
-
-            <div>
-              <p className="mb-2 px-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
-                Operativo
-              </p>
-<a
-  className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
-  href="/practices"
->
-  Pratiche
-</a>
-              <a
-                className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
-                href="/staff"
-              >
-                Staff
-              </a>
-
-              <a
-                className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
-                href="/suppliers"
-              >
-                Fornitori
-              </a>
-            </div>
+  <a
+    className="block rounded-xl px-4 py-3 hover:bg-zinc-100"
+    href="/suppliers"
+  >
+    Fornitori
+  </a>
+</div>
 
             <div>
               <p className="mb-2 px-4 text-xs font-bold uppercase tracking-[0.2em] text-zinc-400">
