@@ -469,13 +469,19 @@ async function deleteCost(id: string) {
               </h3>
 
               <div className="divide-y divide-zinc-100">
-               {[
+{[
   [
     'Venduto',
     new Intl.NumberFormat('it-IT', {
       style: 'currency',
       currency: 'EUR',
-    }).format(0),
+    }).format(
+      costs.reduce(
+        (sum, cost) =>
+          sum + Number(cost.sellingPrice || 0),
+        0,
+      ),
+    ),
   ],
   [
     'Costi',
@@ -496,13 +502,46 @@ async function deleteCost(id: string) {
       style: 'currency',
       currency: 'EUR',
     }).format(
-      0 -
+      costs.reduce(
+        (sum, cost) =>
+          sum + Number(cost.sellingPrice || 0),
+        0,
+      ) -
         costs.reduce(
           (sum, cost) =>
             sum + Number(cost.totalCost || 0),
           0,
         ),
     ),
+  ],
+  [
+    'Margine %',
+    `${
+      costs.reduce(
+        (sum, cost) =>
+          sum + Number(cost.sellingPrice || 0),
+        0,
+      ) > 0
+        ? (
+            ((costs.reduce(
+              (sum, cost) =>
+                sum + Number(cost.sellingPrice || 0),
+              0,
+            ) -
+              costs.reduce(
+                (sum, cost) =>
+                  sum + Number(cost.totalCost || 0),
+                0,
+              )) /
+              costs.reduce(
+                (sum, cost) =>
+                  sum + Number(cost.sellingPrice || 0),
+                0,
+              )) *
+            100
+          ).toFixed(1)
+        : '0.0'
+    }%`,
   ],
   [
     'Incassato',
