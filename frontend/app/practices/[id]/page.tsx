@@ -265,6 +265,24 @@ async function deleteCost(id: string) {
             </div>
 
             <div className="mb-8 grid gap-4 rounded-3xl bg-zinc-50 p-5 md:grid-cols-2">
+             <select
+  value={category}
+  onChange={(e) =>
+    setCategory(e.target.value)
+  }
+  className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 outline-none"
+>
+  <option value="Hotel">Hotel</option>
+  <option value="Trasporti">Trasporti</option>
+  <option value="Staff">Staff</option>
+  <option value="Pratiche">Pratiche</option>
+  <option value="Location">Location</option>
+  <option value="Catering">Catering</option>
+  <option value="Audio Video">Audio Video</option>
+  <option value="Intrattenimento">Intrattenimento</option>
+  <option value="Materiali">Materiali</option>
+  <option value="Altro">Altro</option>
+</select>
               <input
                 placeholder="Servizio"
                 value={serviceName}
@@ -302,7 +320,15 @@ async function deleteCost(id: string) {
                 }
                 className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 outline-none"
               />
-
+<input
+  type="number"
+  placeholder="Prezzo vendita"
+  value={sellingPrice}
+  onChange={(e) =>
+    setSellingPrice(e.target.value)
+  }
+  className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 outline-none"
+/>
               <input
                 type="number"
                 placeholder="IVA %"
@@ -312,7 +338,24 @@ async function deleteCost(id: string) {
                 }
                 className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 outline-none"
               />
-
+<select
+  value={costStatus}
+  onChange={(e) =>
+    setCostStatus(e.target.value)
+  }
+  className="rounded-2xl border border-zinc-200 bg-white px-5 py-4 outline-none"
+>
+  <option value="draft">Bozza</option>
+  <option value="requested">
+    Richiesto
+  </option>
+  <option value="confirmed">
+    Confermato
+  </option>
+  <option value="cancelled">
+    Annullato
+  </option>
+</select>
               <input
                 placeholder="Note"
                 value={notes}
