@@ -376,23 +376,24 @@ async function deleteCost(id: string) {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[800px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-200 text-zinc-500">
-                    <th className="py-3 pr-4">Servizio</th>
-                    <th className="py-3 pr-4">Fornitore</th>
-                    <th className="py-3 pr-4">Q.tà</th>
-                    <th className="py-3 pr-4">Costo unit.</th>
-                    <th className="py-3 pr-4">IVA</th>
-                    <th className="py-3 pr-4">Totale</th>
-                    <th className="py-3 pr-4">Note</th>
-                    <th className="py-3 pr-4"></th>
-                  </tr>
+               <tr className="border-b border-zinc-200 text-zinc-500">
+  <th className="py-3 pr-4">Categoria</th>
+  <th className="py-3 pr-4">Servizio</th>
+  <th className="py-3 pr-4">Fornitore</th>
+  <th className="py-3 pr-4">Costo</th>
+  <th className="py-3 pr-4">Vendita</th>
+  <th className="py-3 pr-4">Margine €</th>
+  <th className="py-3 pr-4">Margine %</th>
+  <th className="py-3 pr-4">Stato</th>
+  <th className="py-3 pr-4"></th>
+</tr>
                 </thead>
 
                 <tbody>
                   {costs.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={8}
+                        colSpan={9}
                         className="py-8 text-center text-zinc-500"
                       >
                         Nessun costo inserito.
@@ -404,6 +405,10 @@ async function deleteCost(id: string) {
                         key={cost.id}
                         className="border-b border-zinc-100"
                       >
+                        <td className="py-4 pr-4">
+                          {cost.category || 'Altro'}
+                        </td>
+
                         <td className="py-4 pr-4 font-semibold text-black">
                           {cost.serviceName}
                         </td>
@@ -412,44 +417,45 @@ async function deleteCost(id: string) {
                           {cost.supplierName || '-'}
                         </td>
 
-                        <td className="py-4 pr-4">
-                          {cost.quantity}
-                        </td>
-
-                        <td className="py-4 pr-4">
-                          {new Intl.NumberFormat('it-IT', {
-                            style: 'currency',
-                            currency: 'EUR',
-                          }).format(Number(cost.unitCost || 0))}
-                        </td>
-
-                        <td className="py-4 pr-4">
-                          {cost.vat}%
-                        </td>
-
-                        <td className="py-4 pr-4 font-bold text-black">
+                        <td className="py-4 pr-4 font-semibold">
                           {new Intl.NumberFormat('it-IT', {
                             style: 'currency',
                             currency: 'EUR',
                           }).format(Number(cost.totalCost || 0))}
                         </td>
 
-                        <td className="py-4 pr-4 text-zinc-600">
-                          {cost.notes || '-'}
+                        <td className="py-4 pr-4">
+                          {new Intl.NumberFormat('it-IT', {
+                            style: 'currency',
+                            currency: 'EUR',
+                          }).format(Number(cost.sellingPrice || 0))}
+                        </td>
+
+                        <td className="py-4 pr-4 font-semibold text-emerald-600">
+                          {new Intl.NumberFormat('it-IT', {
+                            style: 'currency',
+                            currency: 'EUR',
+                          }).format(Number(cost.marginAmount || 0))}
+                        </td>
+
+                        <td className="py-4 pr-4">
+                          {Number(cost.marginPercent || 0).toFixed(1)}%
+                        </td>
+
+                        <td className="py-4 pr-4">
+                          {cost.status || 'draft'}
                         </td>
 
                         <td className="py-4 pr-4">
                           <button
-                            onClick={() =>
-                              deleteCost(cost.id)
-                            }
+                            onClick={() => deleteCost(cost.id)}
                             className="rounded-xl bg-red-100 px-4 py-2 text-red-600"
                           >
                             Elimina
                           </button>
                         </td>
                       </tr>
-                    ))
+                      ))
                   )}
                 </tbody>
               </table>
