@@ -16,6 +16,16 @@ type Practice = {
   status: string;
   notes?: string | null;
 };
+type PracticeCost = {
+  id: string;
+  serviceName: string;
+  supplierName?: string | null;
+  quantity: number;
+  unitCost: number;
+  totalCost: number;
+  vat: number;
+  notes?: string | null;
+};
 
 function formatDate(value?: string | null) {
   if (!value) return 'Non indicata';
@@ -37,13 +47,83 @@ function statusLabel(value: string) {
 export default function PracticeDetailPage() {
   const [practice, setPractice] =
     useState<Practice | null>(null);
+const [costs, setCosts] = useState<PracticeCost[]>([]);
 
+const [serviceName, setServiceName] = useState('');
+const [supplierName, setSupplierName] = useState('');
+const [quantity, setQuantity] = useState('1');
+const [unitCost, setUnitCost] = useState('');
+const [vat, setVat] = useState('22');
+const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadPractice();
   }, []);
+async function loadCosts() {
+  try {
+    const practiceId =
+      window.location.pathname.split('/').pop();
 
+    const res = await fetch(
+      API_URL +
+        '/practice-costs/practice/' +
+        practiceId,
+    );
+
+    const data = await res.json();
+
+    setCosts(Array.isArray(data) ? data : []);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function createCost() {
+  const practiceId =
+    window.location.pathname.split('/').pop();
+
+  const res = await fetch(
+    API_URL + '/practice-costs',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        practiceId,
+        serviceName,
+        supplierName,
+        quantity: Number(quantity),
+        unitCost: Number(unitCost),
+        vat: Number(vat),
+        notes,
+      }),
+    },
+  );
+
+  if (!res.ok) return;
+
+  setServiceName('');
+  setSupplierName('');
+  setQuantity('1');
+  setUnitCost('');
+  setVat('22');
+  setNotes('');
+
+  loadCosts();
+}
+
+async function deleteCost(id: string) {
+  await fetch(
+    API_URL + '/practice-costs/' + id,
+    {
+      method: 'DELETE',
+    },
+  );
+
+  loadCosts();
+}
   async function loadPractice() {
     try {
       const practiceId =
