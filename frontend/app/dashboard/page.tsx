@@ -670,7 +670,12 @@ export default function DashboardPage() {
               >
                 Eventi
               </a>
-
+<a
+  href="/practices"
+  className="block rounded-xl px-4 py-3 text-zinc-600 hover:bg-zinc-100"
+>
+  Pratiche
+</a>
               <a
                 href="/costing"
                 className="rounded-2xl bg-zinc-100 px-5 py-4 text-center font-semibold text-black"
