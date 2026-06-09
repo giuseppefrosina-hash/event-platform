@@ -133,20 +133,26 @@ model PracticeCost {
   id String @id @default(cuid())
 
   practiceId String
-  practice Practice @relation(fields: [practiceId], references: [id])
+  practice   Practice @relation(fields: [practiceId], references: [id])
+
+  category String @default("Altro")
 
   serviceName String
 
-  supplierId String?
+  supplierId   String?
   supplierName String?
 
   quantity Float @default(1)
 
-  unitCost Float
-
-  vat Float @default(22)
-
+  unitCost  Float
+  vat       Float @default(22)
   totalCost Float
+
+  sellingPrice  Float?
+  marginPercent Float?
+  marginAmount  Float?
+
+  status String @default("draft")
 
   notes String?
 
