@@ -5,31 +5,75 @@ import { PrismaService } from '../prisma/prisma.service';
 export class PracticeCostsService {
   constructor(private prisma: PrismaService) {}
 
+  private calculateAmounts(data: {
+    quantity?: number;
+    unitCost?: number;
+    sellingPrice?: number | null;
+  }) {
+    const quantity = Number(data.quantity || 1);
+    const unitCost = Number(data.unitCost || 0);
+    const totalCost = quantity * unitCost;
+
+    const sellingPrice =
+      data.sellingPrice !== undefined &&
+      data.sellingPrice !== null
+        ? Number(data.sellingPrice)
+        : null;
+
+    const marginAmount =
+      sellingPrice !== null
+        ? sellingPrice - totalCost
+        : null;
+
+    const marginPercent =
+      sellingPrice !== null && totalCost > 0
+        ? (marginAmount! / totalCost) * 100
+        : null;
+
+    return {
+      quantity,
+      unitCost,
+      totalCost,
+      sellingPrice,
+      marginAmount,
+      marginPercent,
+    };
+  }
+
   create(data: {
     practiceId: string;
+    category?: string;
     serviceName: string;
     supplierId?: string;
     supplierName?: string;
     quantity?: number;
     unitCost: number;
     vat?: number;
+    sellingPrice?: number | null;
+    status?: string;
     notes?: string;
   }) {
-    const quantity = Number(data.quantity || 1);
-    const unitCost = Number(data.unitCost || 0);
-    const vat = Number(data.vat ?? 22);
-    const totalCost = quantity * unitCost;
+    const amounts = this.calculateAmounts({
+      quantity: data.quantity,
+      unitCost: data.unitCost,
+      sellingPrice: data.sellingPrice,
+    });
 
     return this.prisma.practiceCost.create({
       data: {
         practiceId: data.practiceId,
+        category: data.category || 'Altro',
         serviceName: data.serviceName,
         supplierId: data.supplierId || null,
         supplierName: data.supplierName || null,
-        quantity,
-        unitCost,
-        vat,
-        totalCost,
+        quantity: amounts.quantity,
+        unitCost: amounts.unitCost,
+        vat: Number(data.vat ?? 22),
+        totalCost: amounts.totalCost,
+        sellingPrice: amounts.sellingPrice,
+        marginAmount: amounts.marginAmount,
+        marginPercent: amounts.marginPercent,
+        status: data.status || 'draft',
         notes: data.notes || null,
       },
       include: {
@@ -63,71 +107,79 @@ export class PracticeCostsService {
     });
   }
 
-  update(
+  async update(
     id: string,
     data: {
+      category?: string;
       serviceName?: string;
       supplierId?: string | null;
       supplierName?: string | null;
       quantity?: number;
       unitCost?: number;
       vat?: number;
+      sellingPrice?: number | null;
+      status?: string;
       notes?: string | null;
     },
   ) {
-    return this.prisma.practiceCost
-      .findUnique({
+    const current =
+      await this.prisma.practiceCost.findUnique({
         where: { id },
-      })
-      .then((current) => {
-        if (!current) {
-          throw new Error('Costo pratica non trovato');
-        }
+      });
 
-        const quantity =
-          data.quantity !== undefined
-            ? Number(data.quantity)
-            : Number(current.quantity || 1);
+    if (!current) {
+      throw new Error('Costo pratica non trovato');
+    }
 
-        const unitCost =
-          data.unitCost !== undefined
-            ? Number(data.unitCost)
-            : Number(current.unitCost || 0);
+    const amounts = this.calculateAmounts({
+      quantity:
+        data.quantity !== undefined
+          ? data.quantity
+          : Number(current.quantity || 1),
+      unitCost:
+        data.unitCost !== undefined
+          ? data.unitCost
+          : Number(current.unitCost || 0),
+      sellingPrice:
+        data.sellingPrice !== undefined
+          ? data.sellingPrice
+          : current.sellingPrice,
+    });
 
-        const vat =
+    return this.prisma.practiceCost.update({
+      where: { id },
+      data: {
+        category: data.category ?? current.category,
+        serviceName:
+          data.serviceName ?? current.serviceName,
+        supplierId:
+          data.supplierId !== undefined
+            ? data.supplierId || null
+            : current.supplierId,
+        supplierName:
+          data.supplierName !== undefined
+            ? data.supplierName || null
+            : current.supplierName,
+        quantity: amounts.quantity,
+        unitCost: amounts.unitCost,
+        vat:
           data.vat !== undefined
             ? Number(data.vat)
-            : Number(current.vat || 22);
-
-        const totalCost = quantity * unitCost;
-
-        return this.prisma.practiceCost.update({
-          where: { id },
-          data: {
-            serviceName:
-              data.serviceName ?? current.serviceName,
-            supplierId:
-              data.supplierId !== undefined
-                ? data.supplierId || null
-                : current.supplierId,
-            supplierName:
-              data.supplierName !== undefined
-                ? data.supplierName || null
-                : current.supplierName,
-            quantity,
-            unitCost,
-            vat,
-            totalCost,
-            notes:
-              data.notes !== undefined
-                ? data.notes || null
-                : current.notes,
-          },
-          include: {
-            practice: true,
-          },
-        });
-      });
+            : Number(current.vat || 22),
+        totalCost: amounts.totalCost,
+        sellingPrice: amounts.sellingPrice,
+        marginAmount: amounts.marginAmount,
+        marginPercent: amounts.marginPercent,
+        status: data.status ?? current.status,
+        notes:
+          data.notes !== undefined
+            ? data.notes || null
+            : current.notes,
+      },
+      include: {
+        practice: true,
+      },
+    });
   }
 
   remove(id: string) {
