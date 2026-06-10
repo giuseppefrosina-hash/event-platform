@@ -62,7 +62,6 @@ const [vat, setVat] = useState('22');
 const [category, setCategory] = useState('Altro');
 const [sellingPrice, setSellingPrice] = useState('');
 const [costStatus, setCostStatus] = useState('draft');
-const [costStatus, setCostStatus] = useState('draft');
 const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
 
