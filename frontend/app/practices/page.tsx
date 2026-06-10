@@ -404,64 +404,70 @@ function getPracticeTotals(practiceId: string) {
       key={practice.id}
       className="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-sm"
     >
-      <div className="grid items-center gap-4 lg:grid-cols-[140px_1fr_140px_120px_120px_120px_80px]">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">
-            {practice.practiceNumber}
-          </p>
-          <p className="mt-1 font-bold">
-            {practice.title}
-          </p>
-        </div>
+<div className="min-w-0 flex-1">
+  <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">
+    {practice.practiceNumber}
+  </p>
 
-        <div className="text-zinc-600">
-          <p>{practice.clientName}</p>
-          <p className="text-sm">
-            {practice.businessType} · {formatDate(practice.startDate)}
-          </p>
-        </div>
+  <h3 className="mt-1 break-words text-xl font-bold text-black">
+    {practice.title}
+  </h3>
 
-        <div>
-          <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm font-semibold">
-            {statusLabel(practice.status)}
-          </span>
-        </div>
+  <p className="mt-2 break-words text-zinc-600">
+    {practice.clientName}
+  </p>
 
-        <div className="font-semibold">
-          Costi:{' '}
-          {new Intl.NumberFormat('it-IT', {
-            style: 'currency',
-            currency: 'EUR',
-          }).format(totals.totalCosts)}
-        </div>
+  <p className="mt-1 text-sm text-zinc-500">
+    {practice.businessType} · {formatDate(practice.startDate)}
+  </p>
+</div>
 
-        <div className="font-semibold">
-          Venduto:{' '}
-          {new Intl.NumberFormat('it-IT', {
-            style: 'currency',
-            currency: 'EUR',
-          }).format(totals.totalSales)}
-        </div>
+<div className="flex flex-wrap gap-3 xl:justify-end">
+  <span className="rounded-full bg-zinc-100 px-3 py-2 text-sm font-semibold text-zinc-700">
+    {statusLabel(practice.status)}
+  </span>
 
-        <div className="font-bold text-emerald-700">
-          Margine:{' '}
-          {new Intl.NumberFormat('it-IT', {
-            style: 'currency',
-            currency: 'EUR',
-          }).format(totals.margin)}
-        </div>
+  <div className="rounded-2xl bg-zinc-50 px-4 py-3">
+    <p className="text-xs text-zinc-500">Costi</p>
+    <p className="font-bold">
+      {new Intl.NumberFormat('it-IT', {
+        style: 'currency',
+        currency: 'EUR',
+      }).format(totals.totalCosts)}
+    </p>
+  </div>
 
-        <button
-          onClick={() =>
-            setExpandedPracticeId(
-              isExpanded ? '' : practice.id,
-            )
-          }
-          className="rounded-xl bg-black px-4 py-2 text-white"
-        >
-          {isExpanded ? '-' : '+'}
-        </button>
-      </div>
+  <div className="rounded-2xl bg-zinc-50 px-4 py-3">
+    <p className="text-xs text-zinc-500">Venduto</p>
+    <p className="font-bold">
+      {new Intl.NumberFormat('it-IT', {
+        style: 'currency',
+        currency: 'EUR',
+      }).format(totals.totalSales)}
+    </p>
+  </div>
+
+  <div className="rounded-2xl bg-emerald-50 px-4 py-3">
+    <p className="text-xs text-emerald-700">Margine</p>
+    <p className="font-bold text-emerald-700">
+      {new Intl.NumberFormat('it-IT', {
+        style: 'currency',
+        currency: 'EUR',
+      }).format(totals.margin)}
+    </p>
+  </div>
+
+  <button
+    onClick={() =>
+      setExpandedPracticeId(
+        isExpanded ? '' : practice.id,
+      )
+    }
+    className="min-w-14 rounded-2xl bg-black px-5 py-3 font-bold text-white"
+  >
+    {isExpanded ? '-' : '+'}
+  </button>
+</div>
 
       {isExpanded && (
         <div className="mt-6 rounded-2xl bg-zinc-50 p-5">
@@ -474,9 +480,9 @@ function getPracticeTotals(practiceId: string) {
               {practiceCosts.map((cost) => (
                 <div
                   key={cost.id}
-                  className="grid gap-3 rounded-xl bg-white p-4 md:grid-cols-[120px_1fr_120px_120px_120px]"
+                  
                 >
-                  <div className="font-semibold">
+                  <div className="font-semibold">className="grid gap-3 rounded-xl bg-white p-4 md:grid-cols-[120px_1fr] xl:grid-cols-[120px_1fr_120px_120px_120px]"
                     {cost.category || 'Altro'}
                   </div>
 
