@@ -477,12 +477,12 @@ function getPracticeTotals(practiceId: string) {
             </p>
           ) : (
             <div className="grid gap-3">
-              {practiceCosts.map((cost) => (
-                <div
-                  key={cost.id}
-                  
-                >
-                  <div className="font-semibold">className="grid gap-3 rounded-xl bg-white p-4 md:grid-cols-[120px_1fr] xl:grid-cols-[120px_1fr_120px_120px_120px]"
+             {practiceCosts.map((cost) => (
+  <div
+    key={cost.id}
+    className="grid gap-3 rounded-xl bg-white p-4 md:grid-cols-[120px_1fr] xl:grid-cols-[120px_1fr_120px_120px_120px]"
+  >
+  <div className="font-semibold">
                     {cost.category || 'Altro'}
                   </div>
 
@@ -516,7 +516,7 @@ function getPracticeTotals(practiceId: string) {
                       style: 'currency',
                       currency: 'EUR',
                     }).format(Number(cost.marginAmount || 0))}
-                  </div>
+                                   </div>
                 </div>
               ))}
             </div>
