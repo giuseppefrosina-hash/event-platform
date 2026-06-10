@@ -62,6 +62,7 @@ const [vat, setVat] = useState('22');
 const [category, setCategory] = useState('Altro');
 const [sellingPrice, setSellingPrice] = useState('');
 const [costStatus, setCostStatus] = useState('draft');
+const [costStatus, setCostStatus] = useState('draft');
 const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -139,6 +140,64 @@ async function deleteCost(id: string) {
       method: 'DELETE',
     },
   );
+
+  loadCosts();
+}
+async function editCost(cost: PracticeCost) {
+  setEditingCostId(cost.id);
+  setCategory(cost.category || 'Altro');
+  setServiceName(cost.serviceName || '');
+  setSupplierName(cost.supplierName || '');
+  setQuantity(String(cost.quantity || 1));
+  setUnitCost(String(cost.unitCost || ''));
+  setVat(String(cost.vat || 22));
+  setSellingPrice(
+    cost.sellingPrice !== null &&
+      cost.sellingPrice !== undefined
+      ? String(cost.sellingPrice)
+      : '',
+  );
+  setCostStatus(cost.status || 'draft');
+  setNotes(cost.notes || '');
+}
+async function updateCost() {
+  if (!editingCostId) return;
+
+  const res = await fetch(
+    API_URL + '/practice-costs/' + editingCostId,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        category,
+        serviceName,
+        supplierName,
+        quantity: Number(quantity),
+        unitCost: Number(unitCost),
+        vat: Number(vat),
+        sellingPrice: sellingPrice
+          ? Number(sellingPrice)
+          : null,
+        status: costStatus,
+        notes,
+      }),
+    },
+  );
+
+  if (!res.ok) return;
+
+  setEditingCostId('');
+  setServiceName('');
+  setSupplierName('');
+  setQuantity('1');
+  setUnitCost('');
+  setVat('22');
+  setCategory('Altro');
+  setSellingPrice('');
+  setCostStatus('draft');
+  setNotes('');
 
   loadCosts();
 }
@@ -366,10 +425,10 @@ async function deleteCost(id: string) {
               />
 
               <button
-                onClick={createCost}
+  onClick={editingCostId ? updateCost : createCost}
                 className="rounded-2xl bg-black px-6 py-4 font-semibold text-white md:col-span-2"
               >
-                Aggiungi costo
+                {editingCostId ? 'Salva modifica' : 'Aggiungi costo'}
               </button>
             </div>
 
@@ -446,14 +505,23 @@ async function deleteCost(id: string) {
                           {cost.status || 'draft'}
                         </td>
 
-                        <td className="py-4 pr-4">
-                          <button
-                            onClick={() => deleteCost(cost.id)}
-                            className="rounded-xl bg-red-100 px-4 py-2 text-red-600"
-                          >
-                            Elimina
-                          </button>
-                        </td>
+   <td className="py-4 pr-4">
+  <div className="flex flex-col gap-2">
+    <button
+      onClick={() => editCost(cost)}
+      className="rounded-xl bg-zinc-100 px-4 py-2 text-zinc-700"
+    >
+      Modifica
+    </button>
+
+    <button
+      onClick={() => deleteCost(cost.id)}
+      className="rounded-xl bg-red-100 px-4 py-2 text-red-600"
+    >
+      Elimina
+    </button>
+  </div>
+</td>
                       </tr>
                       ))
                   )}
