@@ -161,7 +161,7 @@ export default function Home() {
 
         setTimeout(() => {
           window.location.href =
-            "/companies";
+            "/dashboard";
         }, 1000);
       } else {
         showToast(
@@ -362,78 +362,6 @@ export default function Home() {
               Accedi
             </button>
           </div>
-        </div>
-
-        <div style={cardStyle}>
-          <h2 style={titleStyle}>
-            Crea evento
-          </h2>
-
-          <input
-            placeholder="Titolo"
-            value={title}
-            onChange={(e) =>
-              setTitle(
-                e.target.value,
-              )
-            }
-            style={inputStyle}
-          />
-
-          <input
-            placeholder="Descrizione"
-            value={description}
-            onChange={(e) =>
-              setDescription(
-                e.target.value,
-              )
-            }
-            style={inputStyle}
-          />
-
-          <input
-            placeholder="Luogo"
-            value={location}
-            onChange={(e) =>
-              setLocation(
-                e.target.value,
-              )
-            }
-            style={inputStyle}
-          />
-
-          <input
-            type="datetime-local"
-            value={date}
-            onChange={(e) =>
-              setDate(
-                e.target.value,
-              )
-            }
-            style={inputStyle}
-          />
-
-          <input
-            placeholder="Prezzo"
-            value={price}
-            onChange={(e) =>
-              setPrice(
-                e.target.value,
-              )
-            }
-            style={inputStyle}
-          />
-
-          <button
-            onClick={createEvent}
-            style={{
-              ...primaryButton,
-              width: "100%",
-              marginTop: "16px",
-            }}
-          >
-            Crea evento
-          </button>
         </div>
       </div>
     </main>

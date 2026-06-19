@@ -86,49 +86,103 @@ export default function CompaniesPage() {
     return () => clearTimeout(timer);
   }, [address]);
 
-  async function loadCompanies(
-    currentToken?: string,
-  ) {
-    try {
-      const jwtToken =
-        currentToken ||
-        token ||
-        localStorage.getItem('token');
+async function loadCompanies(
+  currentToken?: string,
+) {
+  try {
+    const jwtToken =
+      currentToken ||
+      token ||
+      localStorage.getItem('token');
 
-      if (!jwtToken) {
-        setMessage('Effettua il login');
-        return;
-      }
-
-      const response = await fetch(
-        `${API_URL}/companies`,
-        {
-          headers: {
-            Authorization: `Bearer ${jwtToken}`,
-          },
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setMessage(
-          data.message ||
-            'Errore caricamento aziende',
-        );
-        return;
-      }
-
-      setCompanies(
-        Array.isArray(data) ? data : [],
-      );
-    } catch {
-      setMessage(
-        'Errore connessione backend',
-      );
+    if (!jwtToken) {
+      setMessage('Effettua il login');
+      return;
     }
-  }
 
+    const response = await fetch(
+      `${API_URL}/companies`,
+      {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setMessage(
+        data.message ||
+          'Errore caricamento aziende',
+      );
+      return;
+    }
+
+    setCompanies(
+      Array.isArray(data) ? data : [],
+    );
+  } catch {
+    setMessage(
+      'Errore connessione backend',
+    );
+  }
+}
+
+async function createCompany() {
+  try {
+    const jwtToken =
+      token ||
+      localStorage.getItem('token');
+
+    if (!jwtToken) {
+      setMessage('Effettua il login prima');
+      return;
+    }
+
+    const response = await fetch(
+      `${API_URL}/companies`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwtToken}`,
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone: phone ? `+${phone}` : '',
+          vatNumber,
+          address,
+          logo: logoUrl,
+        }),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setMessage(
+        data.message ||
+          'Errore creazione azienda',
+      );
+      return;
+    }
+
+    setName('');
+    setEmail('');
+    setPhone('');
+    setVatNumber('');
+    setAddress('');
+    setLogoUrl('');
+    setSuggestions([]);
+
+    setMessage('Azienda creata con successo');
+    loadCompanies(jwtToken);
+  } catch {
+    setMessage('Errore connessione backend');
+  }
+}
   async function uploadLogo(
     file: File,
   ) {
@@ -168,81 +222,104 @@ export default function CompaniesPage() {
     }
   }
 
-  async function createCompany() {
+  async function deleteCompany(id: string) {
     try {
       const jwtToken =
         token ||
         localStorage.getItem('token');
 
       if (!jwtToken) {
-        setMessage(
-          'Effettua il login prima',
-        );
+        setMessage('Effettua il login prima');
         return;
       }
 
-      const response = await fetch(
-        `${API_URL}/companies`,
+      const res = await fetch(
+        `${API_URL}/companies/${id}`,
         {
-          method: 'POST',
+          method: 'DELETE',
           headers: {
-            'Content-Type':
-              'application/json',
+            Authorization: `Bearer ${jwtToken}`,
+          },
+        },
+      );
+
+      if (!res.ok) {
+        setMessage('Errore eliminazione azienda');
+        return;
+      }
+
+      setMessage('Azienda eliminata');
+      loadCompanies(jwtToken);
+    } catch {
+      setMessage('Errore eliminazione azienda');
+    }
+  }
+
+  async function editCompany(company: Company) {
+    const newName = prompt(
+      'Nome azienda',
+      company.name,
+    );
+
+    if (!newName) return;
+
+    try {
+      const jwtToken =
+        token ||
+        localStorage.getItem('token');
+
+      if (!jwtToken) {
+        setMessage('Effettua il login prima');
+        return;
+      }
+
+      const res = await fetch(
+        `${API_URL}/companies/${company.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${jwtToken}`,
           },
           body: JSON.stringify({
-            name,
-            email,
-            phone: phone
-              ? `+${phone}`
-              : '',
-            vatNumber,
-            address,
-            logo: logoUrl,
+            name: newName,
           }),
         },
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setMessage(
-          data.message ||
-            'Errore creazione azienda',
-        );
+      if (!res.ok) {
+        setMessage('Errore modifica azienda');
         return;
       }
 
-      setName('');
-      setEmail('');
-      setPhone('');
-      setVatNumber('');
-      setAddress('');
-      setLogoUrl('');
-      setSuggestions([]);
-
-      setMessage(
-        'Azienda creata con successo',
-      );
-
+      setMessage('Azienda aggiornata');
       loadCompanies(jwtToken);
     } catch {
-      setMessage(
-        'Errore connessione backend',
-      );
+      setMessage('Errore modifica azienda');
     }
   }
 
   return (
     <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <h1 className="mb-4 text-6xl font-bold">
-          Companies CRM
-        </h1>
+      <div className="mb-8 flex items-center justify-between">
+  <div>
+    <h1 className="mb-2 text-6xl font-bold">
+      Companies CRM
+    </h1>
 
-        <p className="mb-8 text-zinc-500">
-          Gestione aziende professionale.
-        </p>
+    <p className="text-zinc-500">
+      Gestione aziende professionale.
+    </p>
+  </div>
+
+  <a
+    href="/dashboard"
+    className="rounded-2xl bg-black px-5 py-3 font-semibold text-white"
+  >
+    Dashboard
+  </a>
+</div>
 
         {message && (
           <div className="mb-8 rounded-2xl bg-white p-5 shadow-sm">
@@ -421,10 +498,32 @@ export default function CompaniesPage() {
                         </div>
                       )}
 
-                      <div>
-                        <h3 className="text-2xl font-bold">
-                          {company.name}
-                        </h3>
+                      <div className="flex-1">
+  <div className="flex items-start justify-between">
+    <h3 className="text-2xl font-bold">
+      {company.name}
+    </h3>
+
+    <div className="flex gap-2">
+      <button
+        onClick={() =>
+          editCompany(company)
+        }
+        className="rounded-xl bg-blue-100 px-4 py-2 text-blue-600"
+      >
+        Modifica
+      </button>
+
+      <button
+        onClick={() =>
+          deleteCompany(company.id)
+        }
+        className="rounded-xl bg-red-100 px-4 py-2 text-red-600"
+      >
+        Elimina
+      </button>
+    </div>
+  </div>
 
                         <div className="mt-4 grid gap-2 text-zinc-500">
                           <p>
