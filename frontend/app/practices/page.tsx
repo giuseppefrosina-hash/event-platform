@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Sidebar from '../../components/Sidebar';
 
 const API_URL = 'https://api.uniquo.it';
 
@@ -235,8 +236,11 @@ function getPracticeTotals(practiceId: string) {
     marginPercent,
   };
 }
-  return (
-    <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
+ return (
+  <div className="flex min-h-screen">
+    <Sidebar />
+
+    <main className="flex-1 bg-[#f5f5f7] text-[#111]">
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-10 flex items-center justify-between">
           <div>
@@ -249,12 +253,6 @@ function getPracticeTotals(practiceId: string) {
             </h1>
           </div>
 
-          <a
-            href="/dashboard"
-            className="rounded-2xl bg-black px-5 py-3 font-semibold text-white"
-          >
-            Dashboard
-          </a>
         </div>
 
         {message && (
@@ -547,6 +545,7 @@ function getPracticeTotals(practiceId: string) {
           </section>
         </div>
       </div>
-    </main>
-  );
+</main>
+</div>
+);
 }

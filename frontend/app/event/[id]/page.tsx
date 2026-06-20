@@ -19,7 +19,8 @@ export default function EventDetailsPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [event, setEvent] = useState<EventItem | null>(null);
+  const [event, setEvent] =
+    useState<EventItem | null>(null);
 
   useEffect(() => {
     loadEvent();
@@ -81,20 +82,53 @@ export default function EventDetailsPage() {
 
             <div className="mb-8 grid gap-3 text-lg text-zinc-600">
               <p>
-                📍 {event.location || 'Location non indicata'}
+                📍{' '}
+                {event.location ||
+                  'Location non indicata'}
               </p>
 
               <p>
                 📅{' '}
-                {new Date(event.date).toLocaleString(
-                  'it-IT',
-                )}
+                {new Date(
+                  event.date,
+                ).toLocaleString('it-IT')}
               </p>
 
               <p>
                 💶 € {event.price || 0}
               </p>
             </div>
+
+            <button
+              onClick={async () => {
+                const res = await fetch(
+                  'https://api.uniquo.it/stripe/create-checkout-session',
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type':
+                        'application/json',
+                    },
+                    body: JSON.stringify({
+                      title: event.title,
+                      price:
+                        event.price || 0,
+                    }),
+                  },
+                );
+
+                const data =
+                  await res.json();
+
+                if (data.url) {
+                  window.location.href =
+                    data.url;
+                }
+              }}
+              className="mb-8 rounded-2xl bg-black px-6 py-4 font-semibold text-white"
+            >
+              Acquista ticket
+            </button>
 
             <div className="rounded-3xl bg-zinc-50 p-8 text-zinc-700">
               {event.description ||
