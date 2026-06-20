@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import PhoneInput from 'react-phone-input-2';
+import Sidebar from '../../components/Sidebar';
 
 const API_URL = 'https://api.uniquo.it';
 
@@ -300,7 +301,10 @@ async function createCompany() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
+  <div className="flex min-h-screen">
+    <Sidebar />
+
+    <main className="flex-1 bg-[#f5f5f7] text-[#111]">
       <div className="mx-auto max-w-7xl px-6 py-10">
       <div className="mb-8 flex items-center justify-between">
   <div>
@@ -313,12 +317,6 @@ async function createCompany() {
     </p>
   </div>
 
-  <a
-    href="/dashboard"
-    className="rounded-2xl bg-black px-5 py-3 font-semibold text-white"
-  >
-    Dashboard
-  </a>
 </div>
 
         {message && (
@@ -559,6 +557,7 @@ async function createCompany() {
           </section>
         </div>
       </div>
-    </main>
+      </main>
+  </div>
   );
 }
