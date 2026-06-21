@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Sidebar from '../../components/Sidebar';
 
 const API_URL = 'https://api.uniquo.it';
 
@@ -249,8 +250,11 @@ export default function StaffPage() {
     }
   }
 
-  return (
-    <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
+return (
+  <div className="flex min-h-screen">
+    <Sidebar />
+
+    <main className="flex-1 bg-[#f5f5f7] text-[#111]">
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-10 flex items-center justify-between">
           <div>
@@ -516,6 +520,7 @@ export default function StaffPage() {
           </section>
         </div>
       </div>
-    </main>
-  );
+</main>
+</div>
+);
 }

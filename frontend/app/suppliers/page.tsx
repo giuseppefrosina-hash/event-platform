@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Sidebar from '../../components/Sidebar';
 
 const API_URL = 'https://api.uniquo.it';
 
@@ -17,7 +18,6 @@ type Supplier = {
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [message, setMessage] = useState('');
-
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -25,19 +25,21 @@ export default function SuppliersPage() {
   const [fiscalCode, setFiscalCode] = useState('');
   const [notes, setNotes] = useState('');
 
-  useEffect(() => {
-    loadSuppliers();
-  }, []);
 
-  async function loadSuppliers() {
-    try {
-      const res = await fetch(API_URL + '/suppliers');
-      const data = await res.json();
-      setSuppliers(Array.isArray(data) ? data : []);
-    } catch {
-      setMessage('Errore caricamento fornitori');
-    }
+useEffect(() => {
+  loadSuppliers();
+}, []);
+
+ async function loadSuppliers() {
+  try {
+    const res = await fetch(API_URL + '/suppliers');
+    const data = await res.json();
+
+    setSuppliers(Array.isArray(data) ? data : []);
+  } catch {
+    setMessage('Errore caricamento fornitori');
   }
+}
 
   async function createSupplier() {
     if (!companyName) {
@@ -93,8 +95,11 @@ export default function SuppliersPage() {
     }
   }
 
-  return (
-    <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
+return (
+  <div className="flex min-h-screen">
+    <Sidebar />
+
+    <main className="flex-1 bg-[#f5f5f7] text-[#111]">
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-10 flex items-center justify-between">
           <div>
@@ -271,6 +276,7 @@ export default function SuppliersPage() {
           </section>
         </div>
       </div>
-    </main>
-  );
+</main>
+</div>
+);
 }
