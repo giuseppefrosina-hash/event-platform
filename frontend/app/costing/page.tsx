@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Sidebar from '../../components/Sidebar';
 
 const API_URL = 'https://api.uniquo.it';
 
@@ -235,7 +236,10 @@ const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const estimatedQuote = filteredTotal * (1 + Number(markup || 0) / 100);
 
   return (
-    <main className="min-h-screen bg-[#f5f5f7] text-[#111]">
+  <div className="flex min-h-screen">
+    <Sidebar />
+
+    <main className="flex-1 bg-[#f5f5f7] text-[#111]">
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-10 flex items-center justify-between">
           <div>
@@ -644,6 +648,7 @@ const [suppliers, setSuppliers] = useState<Supplier[]>([]);
           </section>
         </div>
       </div>
-    </main>
-  );
+</main>
+</div>
+);
 }
