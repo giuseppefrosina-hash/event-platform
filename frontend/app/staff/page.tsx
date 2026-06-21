@@ -263,13 +263,6 @@ return (
             </p>
             <h1 className="text-5xl font-bold">Staff</h1>
           </div>
-
-          <a
-            href="/dashboard"
-            className="rounded-2xl bg-black px-5 py-3 font-semibold text-white"
-          >
-            Dashboard
-          </a>
         </div>
 
         {message && (
